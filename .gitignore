@@ -1,0 +1,46 @@
+.env
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+*.orig
+
+# Java / Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+.mvn/wrapper/MavenWrapperDownloader.java
+.mvn/
+dependency-reduced-pom.xml
+*.iml
+*.class
+*.log
+
+# Spring Boot
+spring.log
+
+# Nginx (generated container FS only; repo has config)
+logs/
+temp/
+
+# IDEs / Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.code-workspace
+
+# Docker
+*.pid
+.env
+.env.local
+docker-compose.override.yml
+
+# Coverage / Reports
+coverage/
+.jacoco/
+site/
+
+# Misc
+*.DS_Store
