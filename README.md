@@ -1,1 +1,1 @@
-# CS-5800-Project
+# CS 5800 Project
