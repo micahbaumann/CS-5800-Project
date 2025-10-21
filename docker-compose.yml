@@ -55,13 +55,19 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
-    container_name: todos-frontend
-    restart: unless-stopped
+    container_name: frontend
+    build:
+      context: ./frontend
     depends_on:
       - backend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
     ports:
-      - "5173:80"   # serve built static assets via nginx
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --port 3000 --hostname 0.0.0.0
 
 volumes:
   db_data:
