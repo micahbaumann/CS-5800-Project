@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: chachef-db
     restart: unless-stopped
     env_file: .env
@@ -14,7 +14,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p ${DB_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 3s
       retries: 30
