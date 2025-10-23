@@ -1,10 +1,10 @@
-package com.chachef.entity;
+package com.chachef.repository;
 
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class ChefTest {
+class UserRepositoryTest {
 
 }
