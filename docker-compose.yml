@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   db:
     image: mysql:8.0
-    container_name: todos-db
+    container_name: chachef-db
     restart: unless-stopped
     env_file: .env
     environment:
@@ -23,7 +21,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:5
-    container_name: todos-phpmyadmin
+    container_name: chachef-phpmyadmin
     restart: unless-stopped
     depends_on:
       db:
@@ -38,7 +36,7 @@ services:
 
   backend:
     build: ./backend
-    container_name: todos-api
+    container_name: chachef-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -55,7 +53,7 @@ services:
         condition: service_healthy
 
   frontend:
-    container_name: frontend
+    container_name: chachef-frontend
     build:
       context: ./frontend
     depends_on:
