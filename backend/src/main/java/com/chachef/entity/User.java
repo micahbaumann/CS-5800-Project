@@ -1,6 +1,8 @@
 package com.chachef.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -15,7 +17,8 @@ public class User {
 
     @Id
     @GeneratedValue
-    @Column(name = "user_id", updatable = false, nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)   // store as CHAR
+    @Column(name = "user_id", length = 50, updatable = false, nullable = false)
     private UUID userId;
 
     @Column(nullable = false, unique = true)

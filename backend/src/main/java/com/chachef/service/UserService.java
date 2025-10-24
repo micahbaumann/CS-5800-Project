@@ -1,9 +1,11 @@
 package com.chachef.service;
 
-import com.chachef.entity.Chef;
+import com.chachef.dto.UserCreateDto;
 import com.chachef.entity.User;
 import com.chachef.repository.UserRepository;
+import com.chachef.service.exceptions.UsernameTakenException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,10 +16,14 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public void createUser() {
+    public void createUser(UserCreateDto userCreateDto) {
+        if (userRepository.existsByUsername(userCreateDto.getUsername())) {
+            throw new UsernameTakenException(userCreateDto.getUsername());
+        }
+
         final User myUser = new User();
-        myUser.setUsername("micah");
-        myUser.setName("Micah");
+        myUser.setUsername(userCreateDto.getUsername());
+        myUser.setName(userCreateDto.getName());
 
         userRepository.save(myUser);
     }
