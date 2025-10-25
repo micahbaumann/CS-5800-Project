@@ -25,7 +25,7 @@ public class ChefService {
 
         myChef.setListingName(chefCreateDto.getListingName());
         myChef.setPrice(chefCreateDto.getPrice());
-        if (userRepository.findByUserId(chefCreateDto.getUser()).isPresent()) {
+        if (!userRepository.findByUserId(chefCreateDto.getUser()).isPresent()) {
             throw new InvalidUserException(chefCreateDto.getUser().toString());
         }
         myChef.setUser(userRepository.findByUserId(chefCreateDto.getUser()).get());

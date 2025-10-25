@@ -31,7 +31,7 @@ public class ChefController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/getChef")
+    @GetMapping("/list")
     public ResponseEntity<List<Chef>> getChef() {
         return new ResponseEntity<>(chefService.getChef(), HttpStatus.OK);
     }
