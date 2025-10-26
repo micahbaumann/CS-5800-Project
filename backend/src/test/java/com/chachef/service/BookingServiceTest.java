@@ -65,7 +65,7 @@ class BookingServiceTest {
         assertEquals(start, b.getStart());
         assertEquals(end, b.getEnd());
         assertEquals("123 Main", b.getAddress());
-        assertEquals("PENDING", b.getStatus()); // per service
+        assertEquals("Pending", b.getStatus()); // per service
         verify(userRepository).findByUserId(userId);
         verify(chefRepository).findByChefId(chefId);
     }

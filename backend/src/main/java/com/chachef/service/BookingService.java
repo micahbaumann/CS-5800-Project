@@ -48,7 +48,6 @@ public class BookingService {
         booking.setStart(bookingRequestDto.getStart());
         booking.setEnd(bookingRequestDto.getEnd());
         booking.setAddress(bookingRequestDto.getAddress());
-        booking.setStatus("PENDING"); // adjust if you use an enum
 
         return bookingRepository.save(booking);
     }
