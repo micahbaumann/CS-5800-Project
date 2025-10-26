@@ -2,7 +2,6 @@ package com.chachef.controller;
 
 import com.chachef.dto.ChefCreateDto;
 import com.chachef.entity.Chef;
-import com.chachef.entity.User;
 import com.chachef.service.ChefService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +21,17 @@ public class ChefController {
     private ChefService chefService;
 
     @PostMapping("/create")
-    public ResponseEntity<Void> addChef(@Valid @RequestBody ChefCreateDto chefCreateDto) {
+    public ResponseEntity<Chef> addChef(@Valid @RequestBody ChefCreateDto chefCreateDto) {
 
-        chefService.createChef(chefCreateDto);
+        Chef savedChef = chefService.createChef(chefCreateDto);
 
 //        return new ResponseEntity<>("made chef", HttpStatus.OK);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return new ResponseEntity<>(savedChef, HttpStatus.CREATED);
     }
 
     @GetMapping("/list")
     public ResponseEntity<List<Chef>> getChef() {
-        return new ResponseEntity<>(chefService.getChef(), HttpStatus.OK);
+        return new ResponseEntity<>(chefService.getAllChefs(), HttpStatus.OK);
     }
 
     @GetMapping("/profile/{id}")

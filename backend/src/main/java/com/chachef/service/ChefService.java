@@ -20,7 +20,7 @@ public class ChefService {
     @Autowired
     private UserRepository userRepository;
 
-    public void createChef(ChefCreateDto chefCreateDto) {
+    public Chef createChef(ChefCreateDto chefCreateDto) {
         final Chef myChef = new Chef();
 
         myChef.setListingName(chefCreateDto.getListingName());
@@ -30,10 +30,10 @@ public class ChefService {
         }
         myChef.setUser(userRepository.findByUserId(chefCreateDto.getUser()).get());
 
-        chefRepository.save(myChef);
+        return chefRepository.save(myChef);
     }
 
-    public List<Chef> getChef() {
+    public List<Chef> getAllChefs() {
         return chefRepository.findAll();
     }
 
