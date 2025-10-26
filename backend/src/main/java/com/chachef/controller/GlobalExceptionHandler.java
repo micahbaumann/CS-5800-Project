@@ -1,5 +1,6 @@
 package com.chachef.controller;
 
+import com.chachef.service.exceptions.InvalidBookingException;
 import com.chachef.service.exceptions.InvalidUserException;
 import com.chachef.service.exceptions.UsernameTakenException;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,15 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleInvalidUserException(InvalidUserException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
         problemDetail.setTitle("Invalid user");
+        problemDetail.setDetail(ex.getMessage());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidBookingException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleInvalidBookingException(InvalidBookingException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problemDetail.setTitle("Invalid booking");
         problemDetail.setDetail(ex.getMessage());
         return problemDetail;
     }

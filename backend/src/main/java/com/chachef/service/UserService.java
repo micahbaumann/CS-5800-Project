@@ -16,7 +16,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public void createUser(UserCreateDto userCreateDto) {
+    public User createUser(UserCreateDto userCreateDto) {
         if (userRepository.existsByUsername(userCreateDto.getUsername())) {
             throw new UsernameTakenException(userCreateDto.getUsername());
         }
@@ -25,7 +25,7 @@ public class UserService {
         myUser.setUsername(userCreateDto.getUsername());
         myUser.setName(userCreateDto.getName());
 
-        userRepository.save(myUser);
+        return userRepository.save(myUser);
     }
 
     public List<User> getAllUsers() {

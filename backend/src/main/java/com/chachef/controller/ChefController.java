@@ -26,7 +26,7 @@ public class ChefController {
         Chef savedChef = chefService.createChef(chefCreateDto);
 
 //        return new ResponseEntity<>("made chef", HttpStatus.OK);
-        return new ResponseEntity<>(savedChef, HttpStatus.CREATED);
+        return new ResponseEntity<>(savedChef, HttpStatus.OK);
     }
 
     @GetMapping("/list")
