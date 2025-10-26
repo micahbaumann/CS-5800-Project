@@ -3,6 +3,9 @@ package com.chachef.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 
 import java.util.UUID;
 
@@ -12,6 +15,10 @@ import java.util.UUID;
     uniqueConstraints = {
             @UniqueConstraint(columnNames = "username")
     }
+)
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "userId"
 )
 public class User {
 
