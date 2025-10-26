@@ -6,9 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ChefRepository extends JpaRepository<Chef,Integer> {
+    Optional<Chef> findByChefId(UUID chefId);
 
 //    Optional<List<Chef>> getChefsById(int id);
 }

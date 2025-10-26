@@ -11,11 +11,11 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Find a user by their username
-    Optional<User> findByUsername(String username);
+    public Optional<User> findByUsername(String username);
 
     // Check if a username already exists
-    boolean existsByUsername(String username);
+    public boolean existsByUsername(String username);
 
     // Find a user by their userId (redundant but clear)
-    Optional<User> findByUserId(UUID userId);
+    public Optional<User> findByUserId(UUID userId);
 }

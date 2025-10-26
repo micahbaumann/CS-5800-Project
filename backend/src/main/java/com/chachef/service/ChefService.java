@@ -36,4 +36,11 @@ public class ChefService {
     public List<Chef> getChef() {
         return chefRepository.findAll();
     }
+
+    public Chef getChefProfile(UUID id) {
+        if (!chefRepository.findByChefId(id).isPresent()) {
+            throw new InvalidUserException(id.toString());
+        }
+        return chefRepository.findByChefId(id).get();
+    }
 }
