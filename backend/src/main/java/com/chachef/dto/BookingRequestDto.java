@@ -11,7 +11,7 @@ public class BookingRequestDto {
     private UUID userId;
 
     @NotNull
-    private UUID Id;
+    private UUID chefId;
 
     @NotNull
     private LocalDateTime start;
@@ -24,7 +24,7 @@ public class BookingRequestDto {
 
     public BookingRequestDto(@JsonProperty("user_id") UUID userId, @JsonProperty("chef_id") UUID chefId, @JsonProperty("start") LocalDateTime start, @JsonProperty("end") LocalDateTime end, @JsonProperty("address") String address) {
         this.userId = userId;
-        this.Id = chefId;
+        this.chefId = chefId;
         this.start = start;
         this.end = end;
         this.address = address;
@@ -33,6 +33,8 @@ public class BookingRequestDto {
     public UUID getUserId() {
         return userId;
     }
+
+    public UUID getChefId() {return chefId;}
 
     public void getChefId(UUID id) {
         this.userId = id;

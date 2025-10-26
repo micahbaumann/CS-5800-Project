@@ -4,6 +4,8 @@ import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
 import com.chachef.repository.BookingRepository;
+import com.chachef.repository.UserRepository;
+import com.chachef.repository.ChefRepository;
 import com.chachef.service.exceptions.InvalidBookingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,40 @@ import java.util.UUID;
 @Service
 public class BookingService {
     @Autowired
+
     private BookingRepository bookingRepository;
+    private UserRepository userRepository;
+    private ChefRepository chefRepository;
+
+    public BookingService(BookingRepository bookingRepository,
+                          UserRepository userRepository,
+                          ChefRepository chefRepository) {
+        this.bookingRepository = bookingRepository;
+        this.userRepository = userRepository;
+        this.chefRepository = chefRepository;
+    }
 
     public Booking bookingRequest(BookingRequestDto bookingRequestDto) {
-        // This should create a new booking request. Look at createChef in ChefService for an example.
-        return new Booking();
+
+        var user = userRepository.findByUserId(bookingRequestDto.getUserId())
+                .orElseThrow(() -> new InvalidBookingException("Invalid user: " + bookingRequestDto.getUserId()));
+        var chef = chefRepository.findByChefId(bookingRequestDto.getChefId())
+                .orElseThrow(() -> new InvalidBookingException("Invalid chef: " + bookingRequestDto.getChefId()));
+
+        if (bookingRequestDto.getStart() != null && bookingRequestDto.getEnd() != null
+                && bookingRequestDto.getStart().isAfter(bookingRequestDto.getEnd())) {
+            throw new InvalidBookingException("start must be before end");
+        }
+
+        var booking = new Booking();
+        booking.setUser(user);
+        booking.setChef(chef);
+        booking.setStart(bookingRequestDto.getStart());
+        booking.setEnd(bookingRequestDto.getEnd());
+        booking.setAddress(bookingRequestDto.getAddress());
+        booking.setStatus("PENDING"); // adjust if you use an enum
+
+        return bookingRepository.save(booking);
     }
 
     public List<Booking> viewBookingsUser(UUID userId) {
@@ -30,13 +61,17 @@ public class BookingService {
     }
 
     public List<Booking> viewBookingsChef(UUID chefId) {
-        // This should list all bookings that belong to the chef chefId
-        return new ArrayList<Booking>();
+        if (!bookingRepository.findByChefId(chefId).isPresent()) {
+            return new ArrayList<>();
+        }
+        return bookingRepository.findByChefId(chefId).get();
     }
 
     public Booking viewBooking(UUID bookingId) {
-        // This should get a specific booking based on the bookingId. See getChefProfile in ChefService for an example.
-        return new Booking();
+        if(!bookingRepository.findByBookingId(bookingId).isPresent()) {
+            throw  new InvalidBookingException(bookingId.toString());
+        }
+        return bookingRepository.findByBookingId(bookingId).get();
     }
 
     public void changeStatus(ChangeStatusDto changeStatusDto) {

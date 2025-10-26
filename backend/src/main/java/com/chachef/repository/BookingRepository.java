@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface BookingRepository extends JpaRepository<Booking,Integer> {
+public interface BookingRepository extends JpaRepository<Booking, UUID> {
     public Optional<List<Booking>> findByUserId(UUID userId);
     public Optional<List<Booking>> findByChefId(UUID chefId);
     public Optional<Booking> findByBookingId(UUID bookingId);
