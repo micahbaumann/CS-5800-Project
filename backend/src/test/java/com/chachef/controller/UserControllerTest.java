@@ -3,6 +3,7 @@ package com.chachef.controller;
 
 import com.chachef.entity.User;
 import com.chachef.service.UserService;
+import com.chachef.service.exceptions.InvalidUserException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -62,7 +64,6 @@ class UserControllerTest {
     void getAllUsers() throws Exception {
         User u1 = new User("alice", "Alice A.");
         User u2 = new User("bob", "Bob B.");
-        // u1.setUserId(UUID.randomUUID()); u2.setUserId(UUID.randomUUID());
         when(userService.getAllUsers()).thenReturn(List.of(u1, u2));
 
         mockMvc.perform(get("/user/list"))
@@ -73,5 +74,35 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[1].username", is("bob")));
 
         verify(userService, times(1)).getAllUsers();
+    }
+
+    @Test
+    void getUser() throws Exception {
+        UUID id = UUID.randomUUID();
+        User u1 = new User("alice", "Alice A.");
+
+        when(userService.getUser(id)).thenReturn(u1);
+
+        mockMvc.perform(get("/user/view/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username", is("alice")))
+                .andExpect(jsonPath("$.name", is("Alice A.")));
+
+        verify(userService, times(1)).getUser(id);
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    void getUser_NoUser() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        when(userService.getUser(id)).thenThrow(new InvalidUserException(id.toString()));
+
+        mockMvc.perform(get("/user/view/{id}", id))
+                .andExpect(status().isConflict());
+
+        verify(userService).getUser(id);
+        verifyNoMoreInteractions(userService);
     }
 }
