@@ -25,7 +25,7 @@ public class User {
     @Id
     @GeneratedValue
     @JdbcTypeCode(SqlTypes.CHAR)   // store as CHAR
-    @Column(name = "user_id", length = 50, updatable = false, nullable = false)
+    @Column(name = "user_id", length = 36, updatable = false, nullable = false)
     private UUID userId;
 
     @Column(nullable = false, unique = true)

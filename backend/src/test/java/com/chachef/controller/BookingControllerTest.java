@@ -11,9 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,22 +24,14 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = BookingController.class)
-@Import(BookingControllerTest.TestConfig.class)
+@WebMvcTest(BookingController.class)
 class BookingControllerTest {
 
-    @Configuration(proxyBeanMethods = false)
-    static class TestConfig {
-        @Bean
-        BookingService bookingService() {
-            return mock(BookingService.class);
-        }
-    }
-
     @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper; // Boot provides JavaTimeModule
+    @Autowired private ObjectMapper objectMapper;
 
-    @Autowired private BookingService bookingService; // the mock from TestConfig
+    @MockBean
+    private BookingService bookingService;
 
     private UUID userId;
     private UUID chefId;
@@ -131,7 +121,7 @@ class BookingControllerTest {
     @DisplayName("PUT /booking/update-status -> 201 Created")
     void changeStatus_created() throws Exception {
         var payload = """
-            { "bookingId": "%s", "status": "CONFIRMED" }
+            { "booking_id": "%s", "status": "Approved" }
             """.formatted(bookingId);
 
         doNothing().when(bookingService).changeStatus(any(ChangeStatusDto.class));

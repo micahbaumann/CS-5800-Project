@@ -13,7 +13,7 @@ public class Chef {
     @Id
     @GeneratedValue
     @JdbcTypeCode(SqlTypes.CHAR)   // store as CHAR
-    @Column(name = "chef_id", length = 50, updatable = false, nullable = false)
+    @Column(name = "chef_id", length = 36, updatable = false, nullable = false)
     private UUID chefId;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)

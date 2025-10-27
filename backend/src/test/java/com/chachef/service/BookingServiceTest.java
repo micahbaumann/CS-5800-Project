@@ -113,7 +113,7 @@ class BookingServiceTest {
 
     @Test
     void viewBookingsUser_returnsEmptyWhenNone() {
-        when(bookingRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(bookingRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
         var list = bookingService.viewBookingsUser(userId);
         assertNotNull(list);
         assertTrue(list.isEmpty());
@@ -121,7 +121,7 @@ class BookingServiceTest {
 
     @Test
     void viewBookingsUser_returnsListWhenPresent() {
-        when(bookingRepository.findByUserId(userId))
+        when(bookingRepository.findByUser_UserId(userId))
                 .thenReturn(Optional.of(List.of(new Booking(), new Booking())));
         var list = bookingService.viewBookingsUser(userId);
         assertEquals(2, list.size());
@@ -129,7 +129,7 @@ class BookingServiceTest {
 
     @Test
     void viewBookingsChef_returnsEmptyWhenNone() {
-        when(bookingRepository.findByChefId(chefId)).thenReturn(Optional.empty());
+        when(bookingRepository.findByChef_ChefId(chefId)).thenReturn(Optional.empty());
         var list = bookingService.viewBookingsChef(chefId);
         assertNotNull(list);
         assertTrue(list.isEmpty());
@@ -137,7 +137,7 @@ class BookingServiceTest {
 
     @Test
     void viewBookingsChef_returnsListWhenPresent() {
-        when(bookingRepository.findByChefId(chefId))
+        when(bookingRepository.findByChef_ChefId(chefId))
                 .thenReturn(Optional.of(List.of(new Booking())));
         var list = bookingService.viewBookingsChef(chefId);
         assertEquals(1, list.size());

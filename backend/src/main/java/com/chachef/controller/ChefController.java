@@ -30,7 +30,7 @@ public class ChefController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<Chef>> getChef() {
+    public ResponseEntity<List<Chef>> getAllChefs() {
         return new ResponseEntity<>(chefService.getAllChefs(), HttpStatus.OK);
     }
 

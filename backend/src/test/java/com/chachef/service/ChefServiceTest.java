@@ -2,46 +2,108 @@ package com.chachef.service;
 
 import com.chachef.dto.ChefCreateDto;
 import com.chachef.entity.Chef;
+import com.chachef.entity.User;
 import com.chachef.repository.ChefRepository;
-import jakarta.transaction.Transactional;
+import com.chachef.repository.UserRepository;
+import com.chachef.service.exceptions.InvalidUserException;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.chachef.TestHelper.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@Sql(scripts = "/sample_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,  config = @SqlConfig(transactionMode = SqlConfig.TransactionMode.INFERRED) // run within test tx
-)
-@Rollback(true)
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class ChefServiceTest {
 
-    @Autowired
+    @Mock
+    private ChefRepository chefRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
     private ChefService chefService;
 
     @Test
     void createChef() {
-        final ChefCreateDto chefDto = sampleChefDto();
+        UUID missingUserId = UUID.randomUUID();
+        ChefCreateDto dto = new ChefCreateDto(missingUserId, 10.0, "Test Listing");
 
-        Chef savedChef = chefService.createChef(chefDto);
+        when(userRepository.findByUserId(missingUserId)).thenReturn(Optional.empty());
 
-        assertNotNull(savedChef);
+        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto));
+
+        verify(chefRepository, never()).save(any(Chef.class));
+    }
+
+    @Test
+    void createChef_InvalidUserException() {
+        UUID missingChefId = UUID.randomUUID();
+        when(chefRepository.findByChefId(missingChefId)).thenReturn(Optional.empty());
+
+        assertThrows(InvalidUserException.class, () -> chefService.getChefProfile(missingChefId));
+
+        verify(chefRepository, times(1)).findByChefId(missingChefId);
+        verifyNoMoreInteractions(chefRepository);
     }
 
     @Test
     void getAllChefs() {
-        boolean chefExists =
-            chefService.getAllChefs().stream()
-                .anyMatch(chef -> {
-                    return chef.getChefId().equals(SAMPLE_CHEF_UUID);
-                });
+        Chef c1 = new Chef();
+        Chef c2 = new Chef();
+        when(chefRepository.findAll()).thenReturn(List.of(c1, c2));
 
-        assertTrue(chefExists);
+        List<Chef> result = chefService.getAllChefs();
+
+        assertEquals(2, result.size());
+        assertSame(c1, result.get(0));
+        assertSame(c2, result.get(1));
+        verify(chefRepository).findAll();
+        verifyNoMoreInteractions(chefRepository);
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    void getChefProfile() {
+        UUID userId = UUID.randomUUID();
+
+        User user = new User("jdoe", "John Doe");
+
+        ChefCreateDto dto = new ChefCreateDto(userId, 25.0, "Sample Listing");
+
+        when(userRepository.findByUserId(userId)).thenReturn(Optional.of(user));
+        when(chefRepository.save(any(Chef.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Chef saved = chefService.createChef(dto);
+
+        assertNotNull(saved);
+        assertSame(user, saved.getUser());
+        assertEquals("Sample Listing", saved.getListingName());
+        assertEquals(25.0, saved.getPrice());
+
+        verify(userRepository, times(2)).findByUserId(userId);
+        verify(chefRepository).save(any(Chef.class));
+    }
+
+    @Test
+    void getChefProfile_InvalidUserException() {
+        UUID userId = UUID.randomUUID();
+
+        ChefCreateDto dto = new ChefCreateDto(userId, 25.0, "Sample Listing");
+
+        when(userRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto));
+
+        verify(userRepository).findByUserId(userId);
+        verifyNoInteractions(chefRepository);
     }
 }

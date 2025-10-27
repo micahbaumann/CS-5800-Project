@@ -3,6 +3,8 @@ package com.chachef.service;
 import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
+import com.chachef.entity.Chef;
+import com.chachef.entity.User;
 import com.chachef.repository.BookingRepository;
 import com.chachef.repository.UserRepository;
 import com.chachef.repository.ChefRepository;
@@ -16,25 +18,21 @@ import java.util.UUID;
 
 @Service
 public class BookingService {
+
     @Autowired
-
     private BookingRepository bookingRepository;
-    private UserRepository userRepository;
-    private ChefRepository chefRepository;
 
-    public BookingService(BookingRepository bookingRepository,
-                          UserRepository userRepository,
-                          ChefRepository chefRepository) {
-        this.bookingRepository = bookingRepository;
-        this.userRepository = userRepository;
-        this.chefRepository = chefRepository;
-    }
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ChefRepository chefRepository;
 
     public Booking bookingRequest(BookingRequestDto bookingRequestDto) {
 
-        var user = userRepository.findByUserId(bookingRequestDto.getUserId())
+        User user = userRepository.findByUserId(bookingRequestDto.getUserId())
                 .orElseThrow(() -> new InvalidBookingException("Invalid user: " + bookingRequestDto.getUserId()));
-        var chef = chefRepository.findByChefId(bookingRequestDto.getChefId())
+        Chef chef = chefRepository.findByChefId(bookingRequestDto.getChefId())
                 .orElseThrow(() -> new InvalidBookingException("Invalid chef: " + bookingRequestDto.getChefId()));
 
         if (bookingRequestDto.getStart() != null && bookingRequestDto.getEnd() != null
@@ -42,7 +40,7 @@ public class BookingService {
             throw new InvalidBookingException("start must be before end");
         }
 
-        var booking = new Booking();
+        Booking booking = new Booking();
         booking.setUser(user);
         booking.setChef(chef);
         booking.setStart(bookingRequestDto.getStart());
@@ -53,22 +51,22 @@ public class BookingService {
     }
 
     public List<Booking> viewBookingsUser(UUID userId) {
-        if (!bookingRepository.findByUserId(userId).isPresent()) {
+        if (!bookingRepository.findByUser_UserId(userId).isPresent()) {
             return new ArrayList<>();
         }
-        return bookingRepository.findByUserId(userId).get();
+        return bookingRepository.findByUser_UserId(userId).get();
     }
 
     public List<Booking> viewBookingsChef(UUID chefId) {
-        if (!bookingRepository.findByChefId(chefId).isPresent()) {
+        if (!bookingRepository.findByChef_ChefId(chefId).isPresent()) {
             return new ArrayList<>();
         }
-        return bookingRepository.findByChefId(chefId).get();
+        return bookingRepository.findByChef_ChefId(chefId).get();
     }
 
     public Booking viewBooking(UUID bookingId) {
         if(!bookingRepository.findByBookingId(bookingId).isPresent()) {
-            throw  new InvalidBookingException(bookingId.toString());
+            throw new InvalidBookingException(bookingId.toString());
         }
         return bookingRepository.findByBookingId(bookingId).get();
     }

@@ -11,7 +11,7 @@ public class ChangeStatusDto {
     private UUID bookingId;
 
     @NotNull
-    @Pattern(regexp = "approved|denied|pending", message = "Status must be \"approved\", \"denied\", or \"pending\"")
+    @Pattern(regexp = "Approved|Denied|Pending", message = "Status must be \"Approved\", \"Denied\", or \"Pending\"")
     private String status;
 
     public ChangeStatusDto(@JsonProperty("booking_id") UUID bookingId, @JsonProperty("status") String status) {

@@ -13,7 +13,7 @@ public class Booking {
     @Id
     @GeneratedValue
     @JdbcTypeCode(SqlTypes.CHAR)   // store as CHAR
-    @Column(name = "booking_id", length = 50, updatable = false, nullable = false)
+    @Column(name = "booking_id", length = 36, updatable = false, nullable = false)
     private UUID bookingId;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
@@ -26,10 +26,10 @@ public class Booking {
     @JsonIdentityReference(alwaysAsId = true)
     private Chef chef;
 
-    @Column(name = "start", nullable = false)
+    @Column(name = "`start`", nullable = false)
     public LocalDateTime start;
 
-    @Column(name = "end", nullable = false)
+    @Column(name = "`end`", nullable = false)
     public LocalDateTime end;
 
     @Column(name = "address", nullable = false, length = 500)
