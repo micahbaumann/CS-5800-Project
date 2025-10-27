@@ -11,3 +11,4 @@ EXPOSE 3000
 
 # Default command is overridden in compose for dev server
 CMD ["npm", "run", "start"]
+# CMD ["npm", "run", "dev"]

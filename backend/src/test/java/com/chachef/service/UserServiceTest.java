@@ -33,7 +33,7 @@ class UserServiceTest {
 
         when(userRepository.existsByUsername("test")).thenReturn(false);
         when(userRepository.save(any(User.class)))
-                .thenAnswer(inv -> inv.getArgument(0)); // echo back the entity
+                .thenAnswer(inv -> inv.getArgument(0));
 
         User saved = userService.createUser(dto);
 
