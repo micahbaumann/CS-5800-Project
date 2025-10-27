@@ -3,12 +3,14 @@ package com.chachef.service;
 import com.chachef.dto.UserCreateDto;
 import com.chachef.entity.User;
 import com.chachef.repository.UserRepository;
+import com.chachef.service.exceptions.InvalidUserException;
 import com.chachef.service.exceptions.UsernameTakenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -30,5 +32,12 @@ public class UserService {
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public User getUser(UUID userId) {
+        if (!userRepository.findByUserId(userId).isPresent()) {
+            throw new InvalidUserException(userId.toString());
+        }
+        return userRepository.findById(userId).get();
     }
 }

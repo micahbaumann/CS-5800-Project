@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/user")
@@ -27,5 +28,10 @@ public class UserController {
     @GetMapping("/list")
     public ResponseEntity<List<User>> getAllUsers() {
         return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+    }
+
+    @GetMapping("/view/{userId}")
+    public ResponseEntity<User> getUser(@PathVariable("userId") UUID userId) {
+        return new ResponseEntity<>(userService.getUser(userId), HttpStatus.OK);
     }
 }
