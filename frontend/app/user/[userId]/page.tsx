@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 const API_BASE = process.env.API_BASE_URL ?? "http://localhost:8080";
@@ -25,7 +26,7 @@ export default async function UserProfilePage({
 }: {
   params: Promise<{ userId: string }>;
 }) {
-  const { userId } = await params; // 👈 await params
+  const { userId } = await params;
   const user = await getUser(userId);
 
   return (
@@ -36,6 +37,7 @@ export default async function UserProfilePage({
         <li><b>Username:</b> {user.username}</li>
         <li><b>Name:</b> {user.name}</li>
       </ul>
+      <p><Link href={`/user/${user.userId}/bookings`}>View Bookings</Link></p>
     </div>
   );
 }

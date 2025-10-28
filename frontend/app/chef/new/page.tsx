@@ -116,7 +116,7 @@ export default function ChefSignupPage() {
             <p>User Id: {chef.user}</p>
             <p>Price: {chef.price}</p>
             <p>Name: {chef.listingName}</p>
-            <p><Link href={`/chef/${chef.chefId}`}>View Profile</Link></p>
+            <p><Link href={`/chef/view/${chef.chefId}`}>View Profile</Link></p>
         </div>
       )}
     </div>

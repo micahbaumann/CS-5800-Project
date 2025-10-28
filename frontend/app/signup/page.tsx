@@ -47,7 +47,6 @@ export default function SignupPage() {
 
         setMessage("Signup successful!");
         setUser(data as User);
-        // If you want to keep the values in the inputs, remove the next two lines:
         setUsername("");
         setName("");
         } catch (err) {

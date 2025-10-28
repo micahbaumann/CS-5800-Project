@@ -10,6 +10,7 @@ export default function Home() {
                 <li><Link href="/signup">Signup</Link></li>
                 <li><Link href="/users">View All Users</Link></li>
                 <li><Link href="/chef/new">Create New Chef</Link></li>
+                <li><Link href="/chef/list">View All Chefs</Link></li>
             </ul>
         </div>
     );
