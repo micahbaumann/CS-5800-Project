@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-const API_BASE = process.env.API_BASE_URL ?? "http://localhost:8080";
+const API_BASE = process.env.API_BASE_URL ?? "http://backend:8080";
 
 type User = {
   userId: string;

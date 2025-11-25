@@ -119,7 +119,7 @@ export default function UserBookingListPage() {
                 <th>End</th>
                 <th>Status</th>
                 <th>Address</th>
-                <th>Chef</th>
+                <th>View</th>
                 <th>Delete</th>
                 </tr>
             </thead>
