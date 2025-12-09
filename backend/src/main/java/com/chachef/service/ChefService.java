@@ -1,5 +1,6 @@
 package com.chachef.service;
 
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.dto.ChefCreateDto;
 import com.chachef.entity.Chef;
 import com.chachef.repository.ChefRepository;
@@ -20,15 +21,15 @@ public class ChefService {
     @Autowired
     private UserRepository userRepository;
 
-    public Chef createChef(ChefCreateDto chefCreateDto) {
+    public Chef createChef(ChefCreateDto chefCreateDto, AuthContext authContext) {
         final Chef myChef = new Chef();
 
         myChef.setListingName(chefCreateDto.getListingName());
         myChef.setPrice(chefCreateDto.getPrice());
-        if (!userRepository.findByUserId(chefCreateDto.getUser()).isPresent()) {
-            throw new InvalidUserException(chefCreateDto.getUser().toString());
+        if (userRepository.findByUserId(authContext.getUserId()).isEmpty()) {
+            throw new InvalidUserException(authContext.getUserId().toString());
         }
-        myChef.setUser(userRepository.findByUserId(chefCreateDto.getUser()).get());
+        myChef.setUser(userRepository.findByUserId(authContext.getUserId()).get());
 
         return chefRepository.save(myChef);
     }

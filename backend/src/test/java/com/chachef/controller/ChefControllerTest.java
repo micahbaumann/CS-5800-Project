@@ -35,13 +35,13 @@ class ChefControllerTest {
 
     @Test
     void addChefNotNull() {
-        Chef savedChef = chefController.addChef(sampleChefDto()).getBody();
+        Chef savedChef = chefController.addChef(sampleAuthContext(), sampleChefDto()).getBody();
         assertNotNull(savedChef);
     }
 
     @Test
     void addChefPersists() {
-        Chef savedChef = chefController.addChef(sampleChefDto()).getBody();
+        Chef savedChef = chefController.addChef(sampleAuthContext(), sampleChefDto()).getBody();
 
         List<Chef> users = em.createQuery("SELECT c FROM Chef c WHERE c.chefId = :uuid", Chef.class)
                 .setParameter("uuid", savedChef.getChefId())
@@ -52,8 +52,8 @@ class ChefControllerTest {
 
     @Test
     void getAllChefs() {
-        Chef chef1 = chefController.addChef(sampleChefDto()).getBody();
-        Chef chef2 = chefController.addChef(sampleChefDto()).getBody();
+        Chef chef1 = chefController.addChef(sampleAuthContext(), sampleChefDto()).getBody();
+        Chef chef2 = chefController.addChef(sampleAuthContext(), sampleChefDto()).getBody();
 
         em.flush();
         em.clear();
@@ -72,7 +72,7 @@ class ChefControllerTest {
 
     @Test
     void getChefProfileReturnChef() {
-        Chef saved = chefController.addChef(sampleChefDto()).getBody();
+        Chef saved = chefController.addChef(sampleAuthContext(), sampleChefDto()).getBody();
         assertNotNull(saved);
 
         em.flush();

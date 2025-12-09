@@ -33,7 +33,7 @@ class UserControllerTest {
 
     @Test
     void addUser() throws Exception {
-        User saved = new User("jdoe", "John Doe");
+        User saved = new User("jdoe", "John Doe", "");
 
         when(userService.createUser(any())).thenReturn(saved);
 
@@ -62,8 +62,8 @@ class UserControllerTest {
 
     @Test
     void getAllUsers() throws Exception {
-        User u1 = new User("alice", "Alice A.");
-        User u2 = new User("bob", "Bob B.");
+        User u1 = new User("alice", "Alice A.", "");
+        User u2 = new User("bob", "Bob B.", "");
         when(userService.getAllUsers()).thenReturn(List.of(u1, u2));
 
         mockMvc.perform(get("/user/list"))
@@ -79,7 +79,7 @@ class UserControllerTest {
     @Test
     void getUser() throws Exception {
         UUID id = UUID.randomUUID();
-        User u1 = new User("alice", "Alice A.");
+        User u1 = new User("alice", "Alice A.", "");
 
         when(userService.getUser(id)).thenReturn(u1);
 

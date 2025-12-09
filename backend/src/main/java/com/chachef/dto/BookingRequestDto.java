@@ -8,9 +8,6 @@ import java.util.UUID;
 
 public class BookingRequestDto {
     @NotNull
-    private UUID userId;
-
-    @NotNull
     private UUID chefId;
 
     @NotNull
@@ -22,23 +19,14 @@ public class BookingRequestDto {
     @NotNull
     private String address;
 
-    public BookingRequestDto(@JsonProperty("user_id") UUID userId, @JsonProperty("chef_id") UUID chefId, @JsonProperty("start") LocalDateTime start, @JsonProperty("end") LocalDateTime end, @JsonProperty("address") String address) {
-        this.userId = userId;
+    public BookingRequestDto(@JsonProperty("chef_id") UUID chefId, @JsonProperty("start") LocalDateTime start, @JsonProperty("end") LocalDateTime end, @JsonProperty("address") String address) {
         this.chefId = chefId;
         this.start = start;
         this.end = end;
         this.address = address;
     }
 
-    public UUID getUserId() {
-        return userId;
-    }
-
     public UUID getChefId() {return chefId;}
-
-    public void getChefId(UUID id) {
-        this.userId = id;
-    }
 
     public LocalDateTime getStart() {
         return start;

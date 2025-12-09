@@ -16,6 +16,7 @@ type ApiError = { error?: string; message?: string };
 export default function SignupPage() {
     const [username, setUsername] = useState("");
     const [name, setName] = useState("");
+    const [password, setPassword] = useState("");
     const [message, setMessage] = useState<string>("");
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function SignupPage() {
         const res = await fetch(`${API_BASE}/user/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, name }),
+            body: JSON.stringify({ username, name, password }),
             mode: "cors",
         });
 
@@ -49,6 +50,7 @@ export default function SignupPage() {
         setUser(data as User);
         setUsername("");
         setName("");
+        setPassword("");
         } catch (err) {
         setMessage(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
         } finally {
@@ -83,6 +85,17 @@ export default function SignupPage() {
             />
             </div>
 
+            <div style={{ marginBottom: 12 }}>
+                <label htmlFor="password">Password:&nbsp;</label>
+                <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+            </div>
+
             <button type="submit" disabled={loading}>
             {loading ? "Submitting..." : "Sign Up"}
             </button>
@@ -91,13 +104,7 @@ export default function SignupPage() {
         {message && <p style={{ marginTop: 16 }}>{message}</p>}
 
         {user && (
-            <div style={{ marginTop: 8 }}>
-            <strong>User Information:</strong>
-            <p>User Id: {user.userId}</p>
-            <p>Username: {user.username}</p>
-            <p>Name: {user.name}</p>
-            <p><Link href={`/user/${user.userId}`}>View Profile</Link></p>
-            </div>
+            <p><Link href={`/login`}>Login</Link></p>
         )}
         </div>
     );

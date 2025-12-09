@@ -1,5 +1,7 @@
 package com.chachef.controller;
 
+import com.chachef.annotations.RequireAuth;
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
@@ -20,35 +22,41 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
 
+    @RequireAuth
     @PostMapping("/create")
-    public ResponseEntity<Booking> bookingRequest(@Valid @RequestBody BookingRequestDto bookingRequestDto) {
-        return new ResponseEntity<>(bookingService.bookingRequest(bookingRequestDto), HttpStatus.OK);
+    public ResponseEntity<Booking> bookingRequest(@RequestAttribute(value = "auth") AuthContext authContext, @Valid @RequestBody BookingRequestDto bookingRequestDto) {
+        return new ResponseEntity<>(bookingService.bookingRequest(bookingRequestDto, authContext), HttpStatus.OK);
     }
 
-    @GetMapping("/list/user/{userId}")
-    public ResponseEntity<List<Booking>> viewBookingsUser(@PathVariable UUID userId) {
-        return new ResponseEntity<>(bookingService.viewBookingsUser(userId), HttpStatus.OK);
+    @RequireAuth
+    @GetMapping("/list/user")
+    public ResponseEntity<List<Booking>> viewBookingsUser(@RequestAttribute(value = "auth") AuthContext authContext) {
+        return new ResponseEntity<>(bookingService.viewBookingsUser(authContext.getUserId()), HttpStatus.OK);
     }
 
+    @RequireAuth
     @GetMapping("/list/chef/{chefId}")
-    public ResponseEntity<List<Booking>> viewBookingsChef(@PathVariable UUID chefId) {
-        return new ResponseEntity<>(bookingService.viewBookingsChef(chefId), HttpStatus.OK);
+    public ResponseEntity<List<Booking>> viewBookingsChef(@RequestAttribute(value = "auth") AuthContext authContext, @PathVariable UUID chefId) {
+        return new ResponseEntity<>(bookingService.viewBookingsChef(chefId, authContext), HttpStatus.OK);
     }
 
+    @RequireAuth
     @GetMapping("/view/{bookingId}")
-    public ResponseEntity<Booking> viewBooking(@PathVariable UUID bookingId) {
-        return new ResponseEntity<>(bookingService.viewBooking(bookingId), HttpStatus.OK);
+    public ResponseEntity<Booking> viewBooking(@RequestAttribute(value = "auth") AuthContext authContext, @PathVariable UUID bookingId) {
+        return new ResponseEntity<>(bookingService.viewBooking(bookingId, authContext), HttpStatus.OK);
     }
 
+    @RequireAuth
     @PutMapping("/update-status")
-    public ResponseEntity<Void> changeStatus(@Valid @RequestBody ChangeStatusDto changeStatusDto) {
-        bookingService.changeStatus(changeStatusDto);
+    public ResponseEntity<Void> changeStatus(@RequestAttribute(value = "auth") AuthContext authContext, @Valid @RequestBody ChangeStatusDto changeStatusDto) {
+        bookingService.changeStatus(changeStatusDto, authContext);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @RequireAuth
     @DeleteMapping("/delete/{bookingId}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable UUID bookingId) {
-        bookingService.deleteBooking(bookingId);
+    public ResponseEntity<Void> deleteBooking(@RequestAttribute(value = "auth") AuthContext authContext, @PathVariable UUID bookingId) {
+        bookingService.deleteBooking(bookingId, authContext);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

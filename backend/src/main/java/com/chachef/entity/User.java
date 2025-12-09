@@ -34,12 +34,17 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     // Constructors
     public User() {}
 
-    public User(String username, String name) {
+    public User(String username, String name, String passwordHash) {
         this.username = username;
         this.name = name;
+        this.passwordHash = passwordHash;
     }
 
     // Getters and setters
@@ -61,5 +66,13 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

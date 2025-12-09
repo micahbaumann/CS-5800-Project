@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost/api";
 
 type Chef = {
     chefId: string,
@@ -54,8 +54,9 @@ export default function UserListPage() {
             <thead>
                 <tr>
                 <th>ID</th>
-                <th>Username</th>
+                <th>User</th>
                 <th>Name</th>
+                <th>Price</th>
                 </tr>
             </thead>
             <tbody>

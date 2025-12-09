@@ -11,46 +11,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class ChefCreateDtoTest {
     @Test
     void constructor() {
-        UUID user = UUID.randomUUID();
         double price = 100.0;
         String listingName = "Chef Name";
 
-        ChefCreateDto chefCreateDto = new ChefCreateDto(user, price, listingName);
+        ChefCreateDto chefCreateDto = new ChefCreateDto(price, listingName);
 
-        assertEquals(user, chefCreateDto.getUser());
         assertEquals(price, chefCreateDto.getPrice());
         assertEquals(listingName, chefCreateDto.getListingName());
     }
 
     @Test
-    void getUser() {
-        UUID user = UUID.randomUUID();
-        double price = 100.0;
-        String listingName = "Chef Name";
-
-        ChefCreateDto chefCreateDto = new ChefCreateDto(user, price, listingName);
-
-        assertEquals(user, chefCreateDto.getUser());
-    }
-
-    @Test
     void getPrice() {
-        UUID user = UUID.randomUUID();
         double price = 100.0;
         String listingName = "Chef Name";
 
-        ChefCreateDto chefCreateDto = new ChefCreateDto(user, price, listingName);
+        ChefCreateDto chefCreateDto = new ChefCreateDto(price, listingName);
 
         assertEquals(price, chefCreateDto.getPrice());
     }
 
     @Test
     void getListingName() {
-        UUID user = UUID.randomUUID();
         double price = 100.0;
         String listingName = "Chef Name";
 
-        ChefCreateDto chefCreateDto = new ChefCreateDto(user, price, listingName);
+        ChefCreateDto chefCreateDto = new ChefCreateDto(price, listingName);
 
         assertEquals(listingName, chefCreateDto.getListingName());
     }

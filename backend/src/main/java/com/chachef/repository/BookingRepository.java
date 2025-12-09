@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
-    public Optional<List<Booking>> findByUser_UserId(UUID userId);
-    public Optional<List<Booking>> findByChef_ChefId(UUID chefId);
-    public Optional<Booking> findByBookingId(UUID bookingId);
+    Optional<List<Booking>> findByUser_UserId(UUID userId);
+    Optional<List<Booking>> findByChef_ChefId(UUID chefId);
+    Optional<Booking> findByBookingId(UUID bookingId);
     @Transactional
-    public void deleteByBookingId(UUID bookingId);
+    void deleteByBookingId(UUID bookingId);
 }

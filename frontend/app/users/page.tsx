@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost/api";
 
 type User = {
     userId: string;
@@ -63,7 +63,6 @@ export default function UserListPage() {
                     <td>{u.userId}</td>
                     <td>{u.username}</td>
                     <td>{u.name}</td>
-                    <td><Link href={`/user/${u.userId}`}>View</Link></td>
                 </tr>
                 ))}
             </tbody>

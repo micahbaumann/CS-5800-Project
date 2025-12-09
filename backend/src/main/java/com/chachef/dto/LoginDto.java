@@ -5,31 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class UserCreateDto {
+public class LoginDto {
     @NotBlank
-    @Size(min = 3, max = 50)
-    @Pattern(regexp = "^[A-Za-z0-9_]+$", message = "Username may contain only letters, numbers, and underscores")
     private final String username;
-
-    @NotBlank
-    @Size(max = 100)
-    private final String name;
 
     @NotBlank
     private final String password;
 
-    public UserCreateDto(@JsonProperty("username") String username, @JsonProperty("name") String name, @JsonProperty("password") String password) {
+    public LoginDto(@JsonProperty("username") String username, @JsonProperty("password") String password) {
         this.username = username;
-        this.name = name;
         this.password = password;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getPassword() {

@@ -20,7 +20,7 @@ class UserTest {
     void allArgsConstructor() {
         String username = "username";
         String name = "name";
-        User  user = new User(username, name);
+        User  user = new User(username, name, "");
 
         assertEquals(username, user.getUsername());
         assertEquals(name, user.getName());
@@ -37,7 +37,7 @@ class UserTest {
     void getName() {
         String username = "username";
         String name = "name";
-        User  user = new User(username, name);
+        User  user = new User(username, name, "");
 
         assertEquals(name, user.getName());
     }
@@ -56,7 +56,7 @@ class UserTest {
     void getUsername() {
         String username = "username";
         String name = "name";
-        User  user = new User(username, name);
+        User  user = new User(username, name, "");
         assertEquals(username, user.getUsername());
     }
 

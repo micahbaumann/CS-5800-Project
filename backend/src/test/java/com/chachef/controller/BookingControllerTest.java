@@ -1,5 +1,6 @@
 package com.chachef.controller;
 
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
@@ -36,12 +37,14 @@ class BookingControllerTest {
     private UUID userId;
     private UUID chefId;
     private UUID bookingId;
+    private AuthContext authContext;
 
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
         chefId = UUID.randomUUID();
         bookingId = UUID.randomUUID();
+        authContext = new AuthContext(userId, "exampleUser", "Example User");
         clearInvocations(bookingService);
         reset(bookingService);
     }
@@ -54,15 +57,14 @@ class BookingControllerTest {
 
         var payload = """
             {
-              "user_id": "%s",
               "chef_id": "%s",
               "start":   "%s",
               "end":     "%s",
               "address": "123 Main St"
             }
-            """.formatted(userId, chefId, start, end);
+            """.formatted(chefId, start, end);
 
-        when(bookingService.bookingRequest(ArgumentMatchers.any(BookingRequestDto.class)))
+        when(bookingService.bookingRequest(ArgumentMatchers.any(BookingRequestDto.class), authContext))
                 .thenReturn(new Booking());
 
         mockMvc.perform(post("/booking/create")
@@ -70,7 +72,7 @@ class BookingControllerTest {
                         .content(payload))
                 .andExpect(status().isOk());
 
-        verify(bookingService, times(1)).bookingRequest(any(BookingRequestDto.class));
+        verify(bookingService, times(1)).bookingRequest(any(BookingRequestDto.class), authContext);
     }
 
     @Test
@@ -98,23 +100,23 @@ class BookingControllerTest {
     @Test
     @DisplayName("GET /booking/list/chef/{chefId} -> 200 OK")
     void viewBookingsChef_ok() throws Exception {
-        when(bookingService.viewBookingsChef(chefId)).thenReturn(List.of());
+        when(bookingService.viewBookingsChef(chefId, authContext)).thenReturn(List.of());
 
         mockMvc.perform(get("/booking/list/chef/{chefId}", chefId))
                 .andExpect(status().isOk());
 
-        verify(bookingService).viewBookingsChef(chefId);
+        verify(bookingService).viewBookingsChef(chefId, authContext);
     }
 
     @Test
     @DisplayName("GET /booking/view/{bookingId} -> 200 OK")
     void viewBooking_ok() throws Exception {
-        when(bookingService.viewBooking(bookingId)).thenReturn(new Booking());
+        when(bookingService.viewBooking(bookingId, authContext)).thenReturn(new Booking());
 
         mockMvc.perform(get("/booking/view/{bookingId}", bookingId))
                 .andExpect(status().isOk());
 
-        verify(bookingService).viewBooking(bookingId);
+        verify(bookingService).viewBooking(bookingId, authContext);
     }
 
     @Test
@@ -124,24 +126,24 @@ class BookingControllerTest {
             { "booking_id": "%s", "status": "Approved" }
             """.formatted(bookingId);
 
-        doNothing().when(bookingService).changeStatus(any(ChangeStatusDto.class));
+        doNothing().when(bookingService).changeStatus(any(ChangeStatusDto.class), authContext);
 
         mockMvc.perform(put("/booking/update-status")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated());
 
-        verify(bookingService).changeStatus(any(ChangeStatusDto.class));
+        verify(bookingService).changeStatus(any(ChangeStatusDto.class), authContext);
     }
 
     @Test
     @DisplayName("DELETE /booking/delete/{bookingId} -> 201 Created")
     void deleteBooking_created() throws Exception {
-        doNothing().when(bookingService).deleteBooking(bookingId);
+        doNothing().when(bookingService).deleteBooking(bookingId, authContext);
 
         mockMvc.perform(delete("/booking/delete/{bookingId}", bookingId))
                 .andExpect(status().isCreated());
 
-        verify(bookingService).deleteBooking(bookingId);
+        verify(bookingService).deleteBooking(bookingId, authContext);
     }
 }

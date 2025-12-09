@@ -7,6 +7,7 @@ import com.chachef.service.exceptions.InvalidUserException;
 import com.chachef.service.exceptions.UsernameTakenException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mindrot.jbcrypt.BCrypt;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,7 +30,7 @@ class UserServiceTest {
 
     @Test
     void createUser() {
-        UserCreateDto dto = new UserCreateDto("test", "Test Name");
+        UserCreateDto dto = new UserCreateDto("test", "Test Name", "12345");
 
         when(userRepository.existsByUsername("test")).thenReturn(false);
         when(userRepository.save(any(User.class)))
@@ -40,6 +41,7 @@ class UserServiceTest {
         assertNotNull(saved);
         assertEquals("test", saved.getUsername());
         assertEquals("Test Name", saved.getName());
+        assertTrue(BCrypt.checkpw("12345", saved.getPasswordHash()));
 
         verify(userRepository).existsByUsername("test");
         verify(userRepository).save(any(User.class));
@@ -48,7 +50,7 @@ class UserServiceTest {
 
     @Test
     void createUser_usernameTaken() {
-        UserCreateDto dto = new UserCreateDto("taken_user", "Someone");
+        UserCreateDto dto = new UserCreateDto("taken_user", "Someone", "12345");
 
         when(userRepository.existsByUsername("taken_user")).thenReturn(true);
 
@@ -61,8 +63,8 @@ class UserServiceTest {
 
     @Test
     void getAllUsers() {
-        var u1 = new User("a", "A");
-        var u2 = new User("b", "B");
+        var u1 = new User("a", "A", "12345");
+        var u2 = new User("b", "B", "12345");
         when(userRepository.findAll()).thenReturn(List.of(u1, u2));
 
         List<User> result = userService.getAllUsers();
@@ -78,7 +80,7 @@ class UserServiceTest {
     @Test
     void getUser() {
         UUID id = UUID.randomUUID();
-        User u = new User("alice", "Alice A.");
+        User u = new User("alice", "Alice A.", "12345");
 
         when(userRepository.findByUserId(id)).thenReturn(Optional.of(u));
         when(userRepository.findById(id)).thenReturn(Optional.of(u));

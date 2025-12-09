@@ -10,5 +10,6 @@ import java.util.UUID;
 
 @Repository
 public interface ChefRepository extends JpaRepository<Chef,UUID> {
-    public Optional<Chef> findByChefId(UUID chefId);
+    Optional<Chef> findByChefId(UUID chefId);
+    Optional<List<Chef>> findChefsByUser_UserId(UUID userUserId);
 }

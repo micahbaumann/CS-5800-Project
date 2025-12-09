@@ -5,6 +5,7 @@ import com.chachef.entity.User;
 import com.chachef.repository.UserRepository;
 import com.chachef.service.exceptions.InvalidUserException;
 import com.chachef.service.exceptions.UsernameTakenException;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class UserService {
         final User myUser = new User();
         myUser.setUsername(userCreateDto.getUsername());
         myUser.setName(userCreateDto.getName());
+        myUser.setPasswordHash(BCrypt.hashpw(userCreateDto.getPassword(), BCrypt.gensalt()));
 
         return userRepository.save(myUser);
     }

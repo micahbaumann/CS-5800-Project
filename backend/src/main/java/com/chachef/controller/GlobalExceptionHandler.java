@@ -2,6 +2,7 @@ package com.chachef.controller;
 
 import com.chachef.service.exceptions.InvalidBookingException;
 import com.chachef.service.exceptions.InvalidUserException;
+import com.chachef.service.exceptions.UnauthorizedUser;
 import com.chachef.service.exceptions.UsernameTakenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -64,5 +65,14 @@ public class GlobalExceptionHandler {
         body.put("errors", errors);
 
         return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(UnauthorizedUser.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ProblemDetail handleUnauthorizedUserException(UnauthorizedUser ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        problemDetail.setTitle("User unauthorized");
+        problemDetail.setDetail(ex.getMessage());
+        return problemDetail;
     }
 }

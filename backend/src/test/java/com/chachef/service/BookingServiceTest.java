@@ -1,5 +1,6 @@
 package com.chachef.service;
 
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
@@ -50,13 +51,14 @@ class BookingServiceTest {
     void bookingRequest_savesMappedEntity() {
         var start = LocalDateTime.now().plusDays(1).withNano(0);
         var end   = start.plusHours(2);
-        var dto   = new BookingRequestDto(userId, chefId, start, end, "123 Main");
+        var dto   = new BookingRequestDto(chefId, start, end, "123 Main");
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
 
         when(userRepository.findByUserId(userId)).thenReturn(Optional.of(new User()));
         when(chefRepository.findByChefId(chefId)).thenReturn(Optional.of(new Chef()));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Booking saved = bookingService.bookingRequest(dto);
+        Booking saved = bookingService.bookingRequest(dto, authContext);
         assertNotNull(saved);
 
         var captor = ArgumentCaptor.forClass(Booking.class);
@@ -73,29 +75,31 @@ class BookingServiceTest {
     @Test
     void bookingRequest_throwsWhenUserMissing() {
         var dto = new BookingRequestDto(
-                userId, chefId,
+                chefId,
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(1).plusHours(1),
                 "addr"
         );
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(userRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto));
+        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto, authContext));
         verifyNoInteractions(bookingRepository);
     }
 
     @Test
     void bookingRequest_throwsWhenChefMissing() {
         var dto = new BookingRequestDto(
-                userId, chefId,
+                chefId,
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(1).plusHours(1),
                 "addr"
         );
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(userRepository.findByUserId(userId)).thenReturn(Optional.of(new User()));
         when(chefRepository.findByChefId(chefId)).thenReturn(Optional.empty());
 
-        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto));
+        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto, authContext));
         verifyNoInteractions(bookingRepository);
     }
 
@@ -103,11 +107,12 @@ class BookingServiceTest {
     void bookingRequest_throwsWhenStartAfterEnd() {
         var start = LocalDateTime.now().plusDays(1);
         var end   = start.minusHours(1); // invalid
-        var dto   = new BookingRequestDto(userId, chefId, start, end, "addr");
+        var dto   = new BookingRequestDto(chefId, start, end, "addr");
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(userRepository.findByUserId(userId)).thenReturn(Optional.of(new User()));
         when(chefRepository.findByChefId(chefId)).thenReturn(Optional.of(new Chef()));
 
-        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto));
+        assertThrows(InvalidBookingException.class, () -> bookingService.bookingRequest(dto, authContext));
         verifyNoInteractions(bookingRepository);
     }
 
@@ -129,39 +134,44 @@ class BookingServiceTest {
 
     @Test
     void viewBookingsChef_returnsEmptyWhenNone() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByChef_ChefId(chefId)).thenReturn(Optional.empty());
-        var list = bookingService.viewBookingsChef(chefId);
+        var list = bookingService.viewBookingsChef(chefId, authContext);
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
 
     @Test
     void viewBookingsChef_returnsListWhenPresent() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByChef_ChefId(chefId))
                 .thenReturn(Optional.of(List.of(new Booking())));
-        var list = bookingService.viewBookingsChef(chefId);
+        var list = bookingService.viewBookingsChef(chefId, authContext);
         assertEquals(1, list.size());
     }
 
     @Test
     void viewBooking_returnsBookingWhenFound() {
         var booking = new Booking();
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(booking));
-        assertSame(booking, bookingService.viewBooking(bookingId));
+        assertSame(booking, bookingService.viewBooking(bookingId, authContext));
     }
 
     @Test
     void viewBooking_throwsWhenMissing() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
-        assertThrows(InvalidBookingException.class, () -> bookingService.viewBooking(bookingId));
+        assertThrows(InvalidBookingException.class, () -> bookingService.viewBooking(bookingId, authContext));
     }
 
     @Test
     void changeStatus_updatesAndSaves() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         var booking = new Booking();
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(booking));
 
-        bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"));
+        bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"), authContext);
 
         assertEquals("CONFIRMED", booking.getStatus());
         verify(bookingRepository).save(booking);
@@ -169,23 +179,26 @@ class BookingServiceTest {
 
     @Test
     void changeStatus_throwsWhenMissing() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
         assertThrows(InvalidBookingException.class,
-                () -> bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED")));
+                () -> bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"), authContext));
         verify(bookingRepository, never()).save(any());
     }
 
     @Test
     void deleteBooking_deletesWhenExists() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(new Booking()));
-        bookingService.deleteBooking(bookingId);
+        bookingService.deleteBooking(bookingId, authContext);
         verify(bookingRepository).deleteByBookingId(bookingId);
     }
 
     @Test
     void deleteBooking_throwsWhenMissing() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
-        assertThrows(InvalidBookingException.class, () -> bookingService.deleteBooking(bookingId));
+        assertThrows(InvalidBookingException.class, () -> bookingService.deleteBooking(bookingId, authContext));
         verify(bookingRepository, never()).deleteByBookingId(any());
     }
 }

@@ -1,5 +1,6 @@
 package com.chachef.service;
 
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.dto.ChefCreateDto;
 import com.chachef.entity.Chef;
 import com.chachef.entity.User;
@@ -35,11 +36,12 @@ class ChefServiceTest {
     @Test
     void createChef() {
         UUID missingUserId = UUID.randomUUID();
-        ChefCreateDto dto = new ChefCreateDto(missingUserId, 10.0, "Test Listing");
+        ChefCreateDto dto = new ChefCreateDto(10.0, "Test Listing");
+        AuthContext authContext = new AuthContext(missingUserId, "exampleUser", "Example User");
 
         when(userRepository.findByUserId(missingUserId)).thenReturn(Optional.empty());
 
-        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto));
+        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto, authContext));
 
         verify(chefRepository, never()).save(any(Chef.class));
     }
@@ -75,14 +77,15 @@ class ChefServiceTest {
     void getChefProfile() {
         UUID userId = UUID.randomUUID();
 
-        User user = new User("jdoe", "John Doe");
+        User user = new User("jdoe", "John Doe", "12345");
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
 
-        ChefCreateDto dto = new ChefCreateDto(userId, 25.0, "Sample Listing");
+        ChefCreateDto dto = new ChefCreateDto(25.0, "Sample Listing");
 
         when(userRepository.findByUserId(userId)).thenReturn(Optional.of(user));
         when(chefRepository.save(any(Chef.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Chef saved = chefService.createChef(dto);
+        Chef saved = chefService.createChef(dto, authContext);
 
         assertNotNull(saved);
         assertSame(user, saved.getUser());
@@ -97,11 +100,12 @@ class ChefServiceTest {
     void getChefProfile_InvalidUserException() {
         UUID userId = UUID.randomUUID();
 
-        ChefCreateDto dto = new ChefCreateDto(userId, 25.0, "Sample Listing");
+        ChefCreateDto dto = new ChefCreateDto(25.0, "Sample Listing");
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
 
         when(userRepository.findByUserId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto));
+        assertThrows(InvalidUserException.class, () -> chefService.createChef(dto, authContext));
 
         verify(userRepository).findByUserId(userId);
         verifyNoInteractions(chefRepository);
