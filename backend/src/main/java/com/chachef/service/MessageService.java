@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class MessageService {
@@ -138,18 +140,68 @@ public class MessageService {
     }
 
     public MessageAccount getCreateMessageAccount(AuthContext authContext, UUID chefId) {
-        return null;
+        if(chefRepository.findByChefId(chefId).isEmpty()){
+            throw new InvalidUserException("Chef does not exist.");
+        }
+
+        if(!chefRepository.findByChefId(chefId).get().getUser().getUserId().equals(authContext.getUserId())){
+            throw new UnauthorizedUser("This user cannot create a message account for this chef.");
+        }
+        return createMessageAccountIfNotExist(chefId, "Chef");
     }
 
     public MessageAccount getCreateMessageAccount(AuthContext authContext) {
-        return null;
+        return createMessageAccountIfNotExist(authContext.getUserId(), "User");
     }
 
     private MessageAccount createMessageAccountIfNotExist(UUID userChefID, String type) {
-        return null;
+        Optional<MessageAccount> optionalMessageAccount;
+
+        if (type.equalsIgnoreCase("User")) {
+            optionalMessageAccount = messageAccountRepository.findByUser_UserId(userChefID);
+        } else if (type.equalsIgnoreCase("Chef")) {
+            optionalMessageAccount = messageAccountRepository.findByChef_ChefId(userChefID);
+        } else {
+            throw new IllegalArgumentException("Invalid type for message account creation.");
+        }
+
+        if (optionalMessageAccount.isPresent()) {
+            return optionalMessageAccount.get();
+        } else {
+            MessageAccount newMessageAccount = new MessageAccount();
+            if (type.equalsIgnoreCase("User")) {
+                User user = userRepository.findById(userChefID)
+                        .orElseThrow(() -> new InvalidUserException("User not found with ID: " + userChefID));
+                newMessageAccount.setUser(user);
+            } else {
+                Chef chef = chefRepository.findById(userChefID)
+                        .orElseThrow(() -> new InvalidUserException("Chef not found with ID: " + userChefID));
+                newMessageAccount.setChef(chef);
+            }
+            newMessageAccount.setRole(type);
+            return messageAccountRepository.save(newMessageAccount);
+        }
     }
 
     private Map<String, List<MessageReturnDto>> getMessagesFromMessageAccount(MessageAccount messageAccount) {
-        return null;
+        List<Message> sentMessages = messageRepository.findByFromAccount_MessageAccountId(messageAccount.getMessageAccountId()).orElse(new ArrayList<>());
+        List<Message> receivedMessages = messageRepository.findByToAccount_MessageAccountId(messageAccount.getMessageAccountId()).orElse(new ArrayList<>());
+
+        return Stream.concat(sentMessages.stream(), receivedMessages.stream())
+                .map(message -> new MessageReturnDto(
+                        message.getMessageId(),
+                        message.getFromAccount().getMessageAccountId(),
+                        message.getToAccount().getMessageAccountId(),
+                        message.getContent(),
+                        message.getTimestamp()))
+                .sorted(Comparator.comparing(MessageReturnDto::getTimestamp).reversed())
+                .collect(Collectors.groupingBy(
+                        message -> {
+                            UUID otherPartyId = message.getFrom().equals(messageAccount.getMessageAccountId())
+                                    ? message.getTo()
+                                    : message.getFrom();
+                            return otherPartyId.toString();
+                        }
+                ));
     }
 }
