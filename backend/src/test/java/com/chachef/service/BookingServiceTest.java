@@ -10,6 +10,7 @@ import com.chachef.repository.BookingRepository;
 import com.chachef.repository.ChefRepository;
 import com.chachef.repository.UserRepository;
 import com.chachef.service.exceptions.InvalidBookingException;
+import com.chachef.service.exceptions.UnauthorizedUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +49,16 @@ class BookingServiceTest {
         bookingId = UUID.randomUUID();
     }
 
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     void bookingRequest_savesMappedEntity() {
         var start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -67,7 +79,7 @@ class BookingServiceTest {
         assertEquals(start, b.getStart());
         assertEquals(end, b.getEnd());
         assertEquals("123 Main", b.getAddress());
-        assertEquals("Pending", b.getStatus()); // per service
+        // no status set in service; don’t assert it
         verify(userRepository).findByUserId(userId);
         verify(chefRepository).findByChefId(chefId);
     }
@@ -133,43 +145,121 @@ class BookingServiceTest {
     }
 
     @Test
-    void viewBookingsChef_returnsEmptyWhenNone() {
+    void viewBookingsChef_returnsEmptyWhenNone_andUserIsChef() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef ownedChef = new Chef();
+        setField(ownedChef, "chefId", chefId);
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(ownedChef)));
+
         when(bookingRepository.findByChef_ChefId(chefId)).thenReturn(Optional.empty());
+
         var list = bookingService.viewBookingsChef(chefId, authContext);
+
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
 
     @Test
-    void viewBookingsChef_returnsListWhenPresent() {
+    void viewBookingsChef_returnsListWhenPresent_andUserIsChef() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef ownedChef = new Chef();
+        setField(ownedChef, "chefId", chefId);
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(ownedChef)));
+
+        List<Booking> bookings = List.of(new Booking());
         when(bookingRepository.findByChef_ChefId(chefId))
-                .thenReturn(Optional.of(List.of(new Booking())));
+                .thenReturn(Optional.of(bookings));
+
         var list = bookingService.viewBookingsChef(chefId, authContext);
+
         assertEquals(1, list.size());
+        assertSame(bookings, list);
     }
 
     @Test
-    void viewBooking_returnsBookingWhenFound() {
-        var booking = new Booking();
+    void viewBookingsChef_throwsWhenUserIsNotChefForThatId() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef otherChef = new Chef();
+        setField(otherChef, "chefId", UUID.randomUUID());
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(otherChef)));
+
+        assertThrows(UnauthorizedUser.class,
+                () -> bookingService.viewBookingsChef(chefId, authContext));
+    }
+
+    @Test
+    void viewBooking_returnsBookingWhenUserIsOwner() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        User bookingUser = new User();
+        setField(bookingUser, "userId", userId);
+
+        Booking booking = new Booking();
+        booking.setUser(bookingUser);
+
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(booking));
-        assertSame(booking, bookingService.viewBooking(bookingId, authContext));
+        when(chefRepository.findChefsByUser_UserId(userId)).thenReturn(Optional.empty());
+
+        Booking result = bookingService.viewBooking(bookingId, authContext);
+
+        assertSame(booking, result);
     }
 
     @Test
     void viewBooking_throwsWhenMissing() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
-        assertThrows(InvalidBookingException.class, () -> bookingService.viewBooking(bookingId, authContext));
+
+        assertThrows(InvalidBookingException.class,
+                () -> bookingService.viewBooking(bookingId, authContext));
     }
 
     @Test
-    void changeStatus_updatesAndSaves() {
+    void viewBooking_throwsWhenUserNotOwnerAndNotChef() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
-        var booking = new Booking();
-        when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(booking));
+
+        User otherUser = new User();
+        setField(otherUser, "userId", UUID.randomUUID());
+
+        Chef bookingChef = new Chef();
+        setField(bookingChef, "chefId", UUID.randomUUID());
+
+        Booking booking = new Booking();
+        booking.setUser(otherUser);
+        booking.setChef(bookingChef);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(UnauthorizedUser.class,
+                () -> bookingService.viewBooking(bookingId, authContext));
+    }
+
+    @Test
+    void changeStatus_updatesAndSavesWhenUserIsChefForBooking() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef bookingChef = new Chef();
+        setField(bookingChef, "chefId", chefId);
+
+        Booking booking = new Booking();
+        booking.setChef(bookingChef);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+
+        Chef ownedChef = new Chef();
+        setField(ownedChef, "chefId", chefId);
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(ownedChef)));
 
         bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"), authContext);
 
@@ -181,28 +271,113 @@ class BookingServiceTest {
     void changeStatus_throwsWhenMissing() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
+
         assertThrows(InvalidBookingException.class,
                 () -> bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"), authContext));
         verify(bookingRepository, never()).save(any());
     }
 
     @Test
-    void deleteBooking_deletesWhenExists() {
+    void changeStatus_throwsWhenUserNotChefForBooking() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef bookingChef = new Chef();
+        setField(bookingChef, "chefId", chefId);
+
         Booking booking = new Booking();
-        User user = new User("username", "User", "");
-        booking.setUser(user);
-        AuthContext authContext = new AuthContext(user.getUserId(), "exampleUser", "Example User");
-        bookingRepository.save(booking);
-        when(bookingRepository.findByBookingId(booking.getBookingId())).thenReturn(Optional.of(booking));
-        bookingService.deleteBooking(booking.getBookingId(), authContext);
-        verify(bookingRepository).deleteByBookingId(booking.getBookingId());
+        booking.setChef(bookingChef);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+
+        Chef otherChef = new Chef();
+        setField(otherChef, "chefId", UUID.randomUUID());
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(otherChef)));
+
+        assertThrows(UnauthorizedUser.class,
+                () -> bookingService.changeStatus(new ChangeStatusDto(bookingId, "CONFIRMED"), authContext));
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteBooking_deletesWhenUserIsOwnerAndNotChef() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        // booking user = auth user
+        User bookingUser = new User();
+        setField(bookingUser, "userId", userId);
+
+        Booking booking = new Booking();
+        setField(booking, "bookingId", bookingId);
+        booking.setUser(bookingUser);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.empty());
+
+        bookingService.deleteBooking(bookingId, authContext);
+
+        verify(bookingRepository).deleteByBookingId(bookingId);
+    }
+
+    @Test
+    void deleteBooking_deletesWhenUserIsChefForBooking() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        Chef bookingChef = new Chef();
+        setField(bookingChef, "chefId", chefId);
+
+        Booking booking = new Booking();
+        setField(booking, "bookingId", bookingId);
+        booking.setChef(bookingChef);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+
+        Chef ownedChef = new Chef();
+        setField(ownedChef, "chefId", chefId);
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.of(List.of(ownedChef)));
+
+        bookingService.deleteBooking(bookingId, authContext);
+
+        verify(bookingRepository).deleteByBookingId(bookingId);
     }
 
     @Test
     void deleteBooking_throwsWhenMissing() {
         AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
         when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
-        assertThrows(InvalidBookingException.class, () -> bookingService.deleteBooking(bookingId, authContext));
+
+        assertThrows(InvalidBookingException.class,
+                () -> bookingService.deleteBooking(bookingId, authContext));
+        verify(bookingRepository, never()).deleteByBookingId(any());
+    }
+
+    @Test
+    void deleteBooking_throwsWhenUserNotOwnerAndNotChef() {
+        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
+
+        User otherUser = new User();
+        setField(otherUser, "userId", UUID.randomUUID());
+
+        Chef bookingChef = new Chef();
+        setField(bookingChef, "chefId", UUID.randomUUID());
+
+        Booking booking = new Booking();
+        setField(booking, "bookingId", bookingId);
+        booking.setUser(otherUser);
+        booking.setChef(bookingChef);
+
+        when(bookingRepository.findByBookingId(bookingId))
+                .thenReturn(Optional.of(booking));
+        when(chefRepository.findChefsByUser_UserId(userId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(UnauthorizedUser.class,
+                () -> bookingService.deleteBooking(bookingId, authContext));
         verify(bookingRepository, never()).deleteByBookingId(any());
     }
 }

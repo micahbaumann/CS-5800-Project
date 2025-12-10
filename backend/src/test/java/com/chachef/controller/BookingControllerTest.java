@@ -5,6 +5,7 @@ import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
 import com.chachef.service.BookingService;
+import com.chachef.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,9 @@ class BookingControllerTest {
     @MockBean
     private BookingService bookingService;
 
+    @MockBean
+    private JwtService jwtService;
+
     private UUID userId;
     private UUID chefId;
     private UUID bookingId;
@@ -55,7 +59,7 @@ class BookingControllerTest {
         var start = LocalDateTime.now().plusDays(1).withNano(0);
         var end   = start.plusHours(2);
 
-        var payload = """
+        String payload = """
             {
               "chef_id": "%s",
               "start":   "%s",
@@ -64,21 +68,23 @@ class BookingControllerTest {
             }
             """.formatted(chefId, start, end);
 
-        when(bookingService.bookingRequest(ArgumentMatchers.any(BookingRequestDto.class), authContext))
+        when(bookingService.bookingRequest(any(BookingRequestDto.class), any(AuthContext.class)))
                 .thenReturn(new Booking());
 
         mockMvc.perform(post("/booking/create")
+                        .requestAttr("auth", authContext)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
 
-        verify(bookingService, times(1)).bookingRequest(any(BookingRequestDto.class), authContext);
+        verify(bookingService).bookingRequest(any(BookingRequestDto.class), any(AuthContext.class));
     }
 
     @Test
     @DisplayName("POST /booking/create with invalid body -> 400 Bad Request")
     void bookingRequest_validationError() throws Exception {
         mockMvc.perform(post("/booking/create")
+                        .requestAttr("auth", authContext)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -89,9 +95,11 @@ class BookingControllerTest {
     @Test
     @DisplayName("GET /booking/list/user/{userId} -> 200 OK")
     void viewBookingsUser_ok() throws Exception {
-        when(bookingService.viewBookingsUser(userId)).thenReturn(List.of(new Booking(), new Booking()));
+        when(bookingService.viewBookingsUser(userId))
+                .thenReturn(List.of(new Booking(), new Booking()));
 
-        mockMvc.perform(get("/booking/list/user/{userId}", userId))
+        mockMvc.perform(get("/booking/list/user")
+                        .requestAttr("auth", authContext))
                 .andExpect(status().isOk());
 
         verify(bookingService).viewBookingsUser(userId);
@@ -100,9 +108,11 @@ class BookingControllerTest {
     @Test
     @DisplayName("GET /booking/list/chef/{chefId} -> 200 OK")
     void viewBookingsChef_ok() throws Exception {
-        when(bookingService.viewBookingsChef(chefId, authContext)).thenReturn(List.of());
+        when(bookingService.viewBookingsChef(chefId, authContext))
+                .thenReturn(List.of());
 
-        mockMvc.perform(get("/booking/list/chef/{chefId}", chefId))
+        mockMvc.perform(get("/booking/list/chef/{chefId}", chefId)
+                        .requestAttr("auth", authContext))
                 .andExpect(status().isOk());
 
         verify(bookingService).viewBookingsChef(chefId, authContext);
@@ -111,9 +121,11 @@ class BookingControllerTest {
     @Test
     @DisplayName("GET /booking/view/{bookingId} -> 200 OK")
     void viewBooking_ok() throws Exception {
-        when(bookingService.viewBooking(bookingId, authContext)).thenReturn(new Booking());
+        when(bookingService.viewBooking(bookingId, authContext))
+                .thenReturn(new Booking());
 
-        mockMvc.perform(get("/booking/view/{bookingId}", bookingId))
+        mockMvc.perform(get("/booking/view/{bookingId}", bookingId)
+                        .requestAttr("auth", authContext))
                 .andExpect(status().isOk());
 
         verify(bookingService).viewBooking(bookingId, authContext);
@@ -122,28 +134,32 @@ class BookingControllerTest {
     @Test
     @DisplayName("PUT /booking/update-status -> 201 Created")
     void changeStatus_created() throws Exception {
-        var payload = """
+        String payload = """
             { "booking_id": "%s", "status": "Approved" }
             """.formatted(bookingId);
 
-        doNothing().when(bookingService).changeStatus(any(ChangeStatusDto.class), authContext);
+        doNothing().when(bookingService)
+                .changeStatus(any(ChangeStatusDto.class), any(AuthContext.class));
 
         mockMvc.perform(put("/booking/update-status")
+                        .requestAttr("auth", authContext)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated());
 
-        verify(bookingService).changeStatus(any(ChangeStatusDto.class), authContext);
+        verify(bookingService).changeStatus(any(ChangeStatusDto.class), any(AuthContext.class));
     }
 
     @Test
     @DisplayName("DELETE /booking/delete/{bookingId} -> 201 Created")
     void deleteBooking_created() throws Exception {
-        doNothing().when(bookingService).deleteBooking(bookingId, authContext);
+        doNothing().when(bookingService)
+                .deleteBooking(any(UUID.class), any(AuthContext.class));
 
-        mockMvc.perform(delete("/booking/delete/{bookingId}", bookingId))
+        mockMvc.perform(delete("/booking/delete/{bookingId}", bookingId)
+                        .requestAttr("auth", authContext))
                 .andExpect(status().isCreated());
 
-        verify(bookingService).deleteBooking(bookingId, authContext);
+        verify(bookingService).deleteBooking(eq(bookingId), any(AuthContext.class));
     }
 }

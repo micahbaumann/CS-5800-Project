@@ -1,9 +1,10 @@
 package com.chachef.controller;
 
-
+import com.chachef.dataobjects.AuthContext;
 import com.chachef.entity.User;
 import com.chachef.service.UserService;
 import com.chachef.service.exceptions.InvalidUserException;
+import com.chachef.service.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,6 +32,9 @@ class UserControllerTest {
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private JwtService jwtService;
+
     @Test
     void addUser() throws Exception {
         User saved = new User("jdoe", "John Doe", "");
@@ -38,14 +42,14 @@ class UserControllerTest {
         when(userService.createUser(any())).thenReturn(saved);
 
         mockMvc.perform(post("/user/create")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                             { "username": "jdoe", "name": "John Doe" }
-                             """))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.username", is("jdoe")))
-            .andExpect(jsonPath("$.name", is("John Doe")));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                 { "username": "jdoe", "name": "John Doe", "password": "ignored" }
+                                 """))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username", is("jdoe")))
+                .andExpect(jsonPath("$.name", is("John Doe")));
 
         verify(userService, times(1)).createUser(any());
     }
@@ -77,32 +81,35 @@ class UserControllerTest {
     }
 
     @Test
-    void getUser() throws Exception {
-        UUID id = UUID.randomUUID();
-        User u1 = new User("alice", "Alice A.", "");
+    void getUser_usesAuthContextUserIdAndReturnsUser() throws Exception {
+        UUID authUserId = UUID.randomUUID();
+        User user = new User("alice", "Alice A.", "");
 
-        when(userService.getUser(id)).thenReturn(u1);
+        when(userService.getUser(authUserId)).thenReturn(user);
 
-        mockMvc.perform(get("/user/view/{id}", id))
+        mockMvc.perform(get("/user/view")
+                        .requestAttr("auth", new AuthContext(authUserId, "alice", "Alice A.")))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username", is("alice")))
                 .andExpect(jsonPath("$.name", is("Alice A.")));
 
-        verify(userService, times(1)).getUser(id);
+        verify(userService, times(1)).getUser(authUserId);
         verifyNoMoreInteractions(userService);
     }
 
     @Test
-    void getUser_NoUser() throws Exception {
-        UUID id = UUID.randomUUID();
+    void getUser_NoUser_returnsConflict() throws Exception {
+        UUID authUserId = UUID.randomUUID();
 
-        when(userService.getUser(id)).thenThrow(new InvalidUserException(id.toString()));
+        when(userService.getUser(authUserId))
+                .thenThrow(new InvalidUserException(authUserId.toString()));
 
-        mockMvc.perform(get("/user/view/{id}", id))
+        mockMvc.perform(get("/user/view")
+                        .requestAttr("auth", new AuthContext(authUserId, "alice", "Alice A.")))
                 .andExpect(status().isConflict());
 
-        verify(userService).getUser(id);
+        verify(userService).getUser(authUserId);
         verifyNoMoreInteractions(userService);
     }
 }
