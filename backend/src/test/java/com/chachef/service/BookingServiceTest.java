@@ -188,10 +188,14 @@ class BookingServiceTest {
 
     @Test
     void deleteBooking_deletesWhenExists() {
-        AuthContext authContext = new AuthContext(userId, "exampleUser", "Example User");
-        when(bookingRepository.findByBookingId(bookingId)).thenReturn(Optional.of(new Booking()));
-        bookingService.deleteBooking(bookingId, authContext);
-        verify(bookingRepository).deleteByBookingId(bookingId);
+        Booking booking = new Booking();
+        User user = new User("username", "User", "");
+        booking.setUser(user);
+        AuthContext authContext = new AuthContext(user.getUserId(), "exampleUser", "Example User");
+        bookingRepository.save(booking);
+        when(bookingRepository.findByBookingId(booking.getBookingId())).thenReturn(Optional.of(booking));
+        bookingService.deleteBooking(booking.getBookingId(), authContext);
+        verify(bookingRepository).deleteByBookingId(booking.getBookingId());
     }
 
     @Test

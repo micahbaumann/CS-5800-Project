@@ -30,11 +30,14 @@ public class MessageAccount {
 
     public MessageAccount() {}
 
-    public MessageAccount(UUID messageAccountId, User user, Chef chef, String role) {
-        this.messageAccountId = messageAccountId;
-        this.user = user;
+    public MessageAccount(Chef chef) {
         this.chef = chef;
-        this.role = role;
+        this.role = "Chef";
+    }
+
+    public MessageAccount(User user) {
+        this.user = user;
+        this.role = "User";
     }
 
     public UUID getMessageAccountId() {
