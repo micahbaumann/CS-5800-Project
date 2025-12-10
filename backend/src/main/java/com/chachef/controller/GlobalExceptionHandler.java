@@ -1,9 +1,6 @@
 package com.chachef.controller;
 
-import com.chachef.service.exceptions.InvalidBookingException;
-import com.chachef.service.exceptions.InvalidUserException;
-import com.chachef.service.exceptions.UnauthorizedUser;
-import com.chachef.service.exceptions.UsernameTakenException;
+import com.chachef.service.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -72,6 +69,24 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUnauthorizedUserException(UnauthorizedUser ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
         problemDetail.setTitle("User unauthorized");
+        problemDetail.setDetail(ex.getMessage());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InternalAppError.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ProblemDetail handleInternalAppErrorException(InternalAppError ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problemDetail.setTitle("An internal error occurred");
+        problemDetail.setDetail(ex.getMessage());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidMessageException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail handleInvalidMessageException(InvalidMessageException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problemDetail.setTitle("Invalid message");
         problemDetail.setDetail(ex.getMessage());
         return problemDetail;
     }
