@@ -5,6 +5,7 @@ import com.chachef.dto.BookingRequestDto;
 import com.chachef.dto.ChangeStatusDto;
 import com.chachef.entity.Booking;
 import com.chachef.service.BookingService;
+import com.chachef.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,8 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -34,6 +38,9 @@ class BookingControllerTest {
     @MockBean
     private BookingService bookingService;
 
+    @MockBean
+    private JwtService jwtService;
+
     private UUID userId;
     private UUID chefId;
     private UUID bookingId;
@@ -41,12 +48,19 @@ class BookingControllerTest {
 
     @BeforeEach
     void setUp() {
+        final String username = "exampleUser";
+        final String name = "Example User";
+
         userId = UUID.randomUUID();
         chefId = UUID.randomUUID();
         bookingId = UUID.randomUUID();
-        authContext = new AuthContext(userId, "exampleUser", "Example User");
+        authContext = new AuthContext(userId, username, name);
         clearInvocations(bookingService);
         reset(bookingService);
+
+        when(jwtService.getUserId(any())).thenReturn(userId);
+        when(jwtService.getUsername(any())).thenReturn(username);
+        when(jwtService.getName(any())).thenReturn(name);
     }
 
     @Test
@@ -64,21 +78,23 @@ class BookingControllerTest {
             }
             """.formatted(chefId, start, end);
 
-        when(bookingService.bookingRequest(ArgumentMatchers.any(BookingRequestDto.class), authContext))
+        when(bookingService.bookingRequest(any(BookingRequestDto.class), any(AuthContext.class)))
                 .thenReturn(new Booking());
 
         mockMvc.perform(post("/booking/create")
+                        .header("Authorization", "Bearer tokenwouldberhere")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk());
 
-        verify(bookingService, times(1)).bookingRequest(any(BookingRequestDto.class), authContext);
+        verify(bookingService, times(1)).bookingRequest(any(BookingRequestDto.class), any(AuthContext.class));
     }
 
     @Test
     @DisplayName("POST /booking/create with invalid body -> 400 Bad Request")
     void bookingRequest_validationError() throws Exception {
         mockMvc.perform(post("/booking/create")
+                        .header("Authorization", "Bearer tokenwouldberhere")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -87,11 +103,12 @@ class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("GET /booking/list/user/{userId} -> 200 OK")
+    @DisplayName("GET /booking/list/user -> 200 OK")
     void viewBookingsUser_ok() throws Exception {
         when(bookingService.viewBookingsUser(userId)).thenReturn(List.of(new Booking(), new Booking()));
 
-        mockMvc.perform(get("/booking/list/user/{userId}", userId))
+        mockMvc.perform(get("/booking/list/user")
+                        .header("Authorization", "Bearer tokenwouldberhere"))
                 .andExpect(status().isOk());
 
         verify(bookingService).viewBookingsUser(userId);
@@ -102,7 +119,8 @@ class BookingControllerTest {
     void viewBookingsChef_ok() throws Exception {
         when(bookingService.viewBookingsChef(chefId, authContext)).thenReturn(List.of());
 
-        mockMvc.perform(get("/booking/list/chef/{chefId}", chefId))
+        mockMvc.perform(get("/booking/list/chef/{chefId}", chefId)
+                        .header("Authorization", "Bearer tokenwouldberhere"))
                 .andExpect(status().isOk());
 
         verify(bookingService).viewBookingsChef(chefId, authContext);
@@ -116,7 +134,7 @@ class BookingControllerTest {
         mockMvc.perform(get("/booking/view/{bookingId}", bookingId))
                 .andExpect(status().isOk());
 
-        verify(bookingService).viewBooking(bookingId, authContext);
+        verify(bookingService).viewBooking(bookingId, any(AuthContext.class));
     }
 
     @Test
@@ -141,7 +159,8 @@ class BookingControllerTest {
     void deleteBooking_created() throws Exception {
         doNothing().when(bookingService).deleteBooking(bookingId, authContext);
 
-        mockMvc.perform(delete("/booking/delete/{bookingId}", bookingId))
+        mockMvc.perform(delete("/booking/delete/{bookingId}", bookingId)
+                        .header("Authorization", "Bearer tokenwouldberhere"))
                 .andExpect(status().isCreated());
 
         verify(bookingService).deleteBooking(bookingId, authContext);
