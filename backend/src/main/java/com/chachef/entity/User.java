@@ -48,6 +48,10 @@ public class User {
     }
 
     // Getters and setters
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
     public UUID getUserId() {
         return userId;
     }

@@ -3,6 +3,8 @@ package com.chachef.entity;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserTest {
@@ -23,6 +25,18 @@ class UserTest {
 
         assertEquals(username, user.getUsername());
         assertEquals(name, user.getName());
+    }
+
+    @Test
+    void setUserId() {
+        UUID id = UUID.randomUUID();
+        String username = "username";
+        String name = "name";
+        User  user = new User(username, name, "");
+
+        user.setUserId(id);
+
+        assertEquals(id, user.getUserId());
     }
 
     @Test

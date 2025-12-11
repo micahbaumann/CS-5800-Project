@@ -40,6 +40,10 @@ public class MessageAccount {
         this.role = "User";
     }
 
+    public void setMessageAccountId(UUID messageAccountId) {
+        this.messageAccountId = messageAccountId;
+    }
+
     public UUID getMessageAccountId() {
         return messageAccountId;
     }

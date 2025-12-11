@@ -2,6 +2,8 @@ package com.chachef.entity;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MessageAccountTest {
@@ -28,6 +30,17 @@ class MessageAccountTest {
         assertSame("User", messageAccountUser.getRole());
         assertSame(chef, messageAccountChef.getChef());
         assertSame("Chef", messageAccountChef.getRole());
+    }
+
+    @Test
+    void setMessageAccountId() {
+        User user = new User();
+        UUID id = UUID.randomUUID();
+
+        MessageAccount messageAccountUser = new MessageAccount(user);
+        messageAccountUser.setMessageAccountId(id);
+
+        assertSame(id, messageAccountUser.getMessageAccountId());
     }
 
     @Test
