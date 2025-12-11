@@ -62,9 +62,10 @@ public class AuthService {
             throw new UnauthorizedUser(refreshToken);
         }
 
-        Optional<User> user = userRepository.findByUserId(jwtService.getRefreshUserId(refreshToken));
+        UUID userId = jwtService.getRefreshUserId(refreshToken);
+        Optional<User> user = userRepository.findByUserId(userId);
         if (user.isEmpty()) {
-            throw new InvalidUserException(jwtService.getRefreshUserId(refreshToken).toString());
+            throw new InvalidUserException(userId.toString());
         }
 
         refreshTokensRepository.deleteRefreshTokensByRefreshId(UUID.fromString(jwtService.getRefreshJti(refreshToken)));

@@ -124,8 +124,6 @@ public class MessageService {
                 foundMessage.getToAccount().getChef().getUser().getUserId().equals(authContext.getUserId())
         ) {
             userAuthenticated = true;
-        } else {
-            throw  new InternalAppError("Internal message error.");
         }
 
         if (userAuthenticated) {
