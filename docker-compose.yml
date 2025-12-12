@@ -60,6 +60,7 @@ services:
 
   frontend:
     container_name: chachef-frontend
+    restart: unless-stopped
     build:
       context: ./frontend
     depends_on:
@@ -78,6 +79,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx
+    restart: unless-stopped
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
