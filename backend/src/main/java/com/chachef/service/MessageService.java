@@ -137,19 +137,20 @@ public class MessageService {
         throw  new UnauthorizedUser(authContext.getUserId().toString());
     }
 
-    public MessageAccount getCreateMessageAccount(AuthContext authContext, UUID chefId) {
+    public MessageAccount getCreateMessageAccount(UUID chefId) {
         if(chefRepository.findByChefId(chefId).isEmpty()){
             throw new InvalidUserException("Chef does not exist.");
         }
 
-        if(!chefRepository.findByChefId(chefId).get().getUser().getUserId().equals(authContext.getUserId())){
-            throw new UnauthorizedUser("This user cannot create a message account for this chef.");
-        }
         return createMessageAccountIfNotExist(chefId, "Chef");
     }
 
-    public MessageAccount getCreateMessageAccount(AuthContext authContext) {
-        return createMessageAccountIfNotExist(authContext.getUserId(), "User");
+    public MessageAccount getCreateMessageAccountUser(UUID userId) {
+        if(userRepository.findByUserId(userId).isEmpty()){
+            throw new InvalidUserException("User does not exist.");
+        }
+
+        return createMessageAccountIfNotExist(userId, "User");
     }
 
     private MessageAccount createMessageAccountIfNotExist(UUID userChefID, String type) {
@@ -182,24 +183,42 @@ public class MessageService {
     }
 
     private Map<String, List<MessageReturnDto>> getMessagesFromMessageAccount(MessageAccount messageAccount) {
-        List<Message> sentMessages = messageRepository.findByFromAccount_MessageAccountId(messageAccount.getMessageAccountId()).orElse(new ArrayList<>());
-        List<Message> receivedMessages = messageRepository.findByToAccount_MessageAccountId(messageAccount.getMessageAccountId()).orElse(new ArrayList<>());
+        Optional<List<Message>> foundMessages = messageRepository.findByToAccount_MessageAccountId(messageAccount.getMessageAccountId());
+        Optional<List<Message>> foundSentMessages = messageRepository.findByFromAccount_MessageAccountId(messageAccount.getMessageAccountId());
 
-        return Stream.concat(sentMessages.stream(), receivedMessages.stream())
-                .map(message -> new MessageReturnDto(
-                        message.getMessageId(),
+        Map<String, List<MessageReturnDto>> messageReturnDtoMap = new HashMap<>();
+        if (foundMessages.isPresent()) {
+            List<MessageReturnDto> messageReturnDtoList = new ArrayList<>();
+
+            for (Message message : foundMessages.get()) {
+                messageReturnDtoList.add(new MessageReturnDto(message.getMessageId(),
                         message.getFromAccount().getMessageAccountId(),
                         message.getToAccount().getMessageAccountId(),
                         message.getContent(),
-                        message.getTimestamp()))
-                .sorted(Comparator.comparing(MessageReturnDto::getTimestamp).reversed())
-                .collect(Collectors.groupingBy(
-                        message -> {
-                            UUID otherPartyId = message.getFrom().equals(messageAccount.getMessageAccountId())
-                                    ? message.getTo()
-                                    : message.getFrom();
-                            return otherPartyId.toString();
-                        }
-                ));
+                        message.getTimestamp()));
+            }
+
+            messageReturnDtoMap.put("inbox", messageReturnDtoList);
+        } else {
+            messageReturnDtoMap.put("inbox", List.of());
+        }
+
+        if (foundSentMessages.isPresent()) {
+            List<MessageReturnDto> messageReturnDtoList = new ArrayList<>();
+
+            for (Message message : foundSentMessages.get()) {
+                messageReturnDtoList.add(new MessageReturnDto(message.getMessageId(),
+                        message.getFromAccount().getMessageAccountId(),
+                        message.getToAccount().getMessageAccountId(),
+                        message.getContent(),
+                        message.getTimestamp()));
+            }
+
+            messageReturnDtoMap.put("sent", messageReturnDtoList);
+        } else {
+            messageReturnDtoMap.put("sent", List.of());
+        }
+
+        return messageReturnDtoMap;
     }
 }

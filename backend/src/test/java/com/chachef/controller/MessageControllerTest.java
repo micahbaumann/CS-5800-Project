@@ -203,54 +203,51 @@ class MessageControllerTest {
         verify(mockMessageService, times(1)).viewMessage(mockAuthContext, messageId);
     }
 
-    // --- TEST /message/user/message-account ---
+    // --- TEST /message/user/{userId}/message-account ---
     @Test
-    @DisplayName("GET /user/message-account - Successful retrieval/creation of user account")
+    @DisplayName("GET /user/{userId}/message-account - Successful retrieval/creation of user account")
     void userMessageAccount_Success() throws Exception {
         // ARRANGE: Setup mock MessageAccount
         UUID accountId = UUID.randomUUID();
         MessageAccount mockAccount = new MessageAccount();
         mockAccount.setMessageAccountId(accountId);
 
-        when(mockMessageService.getCreateMessageAccount(any(AuthContext.class))).thenReturn(mockAccount);
+        when(mockMessageService.getCreateMessageAccountUser(any(UUID.class))).thenReturn(mockAccount);
 
-        mockMvc.perform(get("/message/user/message-account")
-                        .requestAttr("auth", mockAuthContext))
+        mockMvc.perform(get("/message/user/{userId}/message-account", userId))
                 .andExpect(status().isOk()) // 200
                 .andExpect(jsonPath("$.message_account_id").value(accountId.toString()));
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext);
+        // Verify service called with correct userId
+        verify(mockMessageService, times(1)).getCreateMessageAccountUser(userId);
     }
 
+
     @Test
-    @DisplayName("GET /user/message-account - Handles InvalidUserException")
+    @DisplayName("GET /user/{userId}/message-account - Handles InvalidUserException")
     void userMessageAccount_InvalidUserException() throws Exception {
         String errorMessage = "User role not supported for message account.";
 
         doThrow(new InvalidUserException(errorMessage))
-                .when(mockMessageService).getCreateMessageAccount(any(AuthContext.class));
+                .when(mockMessageService).getCreateMessageAccountUser(any(UUID.class));
 
-        mockMvc.perform(get("/message/user/message-account")
-                        .requestAttr("auth", mockAuthContext))
-                .andExpect(status().is(409)); // InvalidUserException is mapped to 409
-//                .andExpect(status().reason(errorMessage));
+        mockMvc.perform(get("/message/user/{userId}/message-account", userId))
+                .andExpect(status().is(409)); // assuming your @ControllerAdvice maps InvalidUserException to 409
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext);
+        verify(mockMessageService, times(1)).getCreateMessageAccountUser(userId);
     }
 
     @Test
-    @DisplayName("GET /user/message-account - Handles generic Exception (InternalAppError)")
+    @DisplayName("GET /user/{userId}/message-account - Handles generic Exception (InternalAppError)")
     void userMessageAccount_GenericException() throws Exception {
 
         doThrow(new RuntimeException("Database connection failure"))
-                .when(mockMessageService).getCreateMessageAccount(any(AuthContext.class));
+                .when(mockMessageService).getCreateMessageAccountUser(any(UUID.class));
 
-        mockMvc.perform(get("/message/user/message-account")
-                        .requestAttr("auth", mockAuthContext))
-                .andExpect(status().isInternalServerError()); // InternalAppError is mapped to 500
-//                .andExpect(status().reason("An error has occurred."));
+        mockMvc.perform(get("/message/user/{userId}/message-account", userId))
+                .andExpect(status().isInternalServerError()); // assuming InternalAppError -> 500
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext);
+        verify(mockMessageService, times(1)).getCreateMessageAccountUser(userId);
     }
 
     // --- TEST /message/chef/{chefId}/message-account ---
@@ -262,14 +259,14 @@ class MessageControllerTest {
         MessageAccount mockAccount = new MessageAccount();
         mockAccount.setMessageAccountId(accountId);
 
-        when(mockMessageService.getCreateMessageAccount(any(AuthContext.class), any(UUID.class))).thenReturn(mockAccount);
+        when(mockMessageService.getCreateMessageAccount(any(UUID.class))).thenReturn(mockAccount);
 
-        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId)
-                        .requestAttr("auth", mockAuthContext))
+        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId))
                 .andExpect(status().isOk()) // 200
                 .andExpect(jsonPath("$.message_account_id").value(accountId.toString()));
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext, recipientId);
+        // Verify service called with correct chefId
+        verify(mockMessageService, times(1)).getCreateMessageAccount(recipientId);
     }
 
     @Test
@@ -278,14 +275,12 @@ class MessageControllerTest {
         String errorMessage = "Chef ID not found.";
 
         doThrow(new InvalidUserException(errorMessage))
-                .when(mockMessageService).getCreateMessageAccount(any(AuthContext.class), any(UUID.class));
+                .when(mockMessageService).getCreateMessageAccount(any(UUID.class));
 
-        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId)
-                        .requestAttr("auth", mockAuthContext))
-                .andExpect(status().is(409)); // InvalidUserException is mapped to 401
-//                .andExpect(status().reason(errorMessage));
+        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId))
+                .andExpect(status().is(409)); // assuming InvalidUserException -> 409
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext, recipientId);
+        verify(mockMessageService, times(1)).getCreateMessageAccount(recipientId);
     }
 
     @Test
@@ -293,13 +288,11 @@ class MessageControllerTest {
     void chefMessageAccount_GenericException() throws Exception {
 
         doThrow(new NullPointerException("NPE in service"))
-                .when(mockMessageService).getCreateMessageAccount(any(AuthContext.class), any(UUID.class));
+                .when(mockMessageService).getCreateMessageAccount(any(UUID.class));
 
-        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId)
-                        .requestAttr("auth", mockAuthContext))
-                .andExpect(status().isInternalServerError()); // InternalAppError is mapped to 500
-//                .andExpect(status().reason("An error has occurred."));
+        mockMvc.perform(get("/message/chef/{chefId}/message-account", recipientId))
+                .andExpect(status().isInternalServerError()); // assuming InternalAppError -> 500
 
-        verify(mockMessageService, times(1)).getCreateMessageAccount(mockAuthContext, recipientId);
+        verify(mockMessageService, times(1)).getCreateMessageAccount(recipientId);
     }
 }

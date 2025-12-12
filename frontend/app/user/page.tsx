@@ -86,6 +86,9 @@ export default function UserProfilePage({ params }: Props) {
             <p>
                 <Link href={`/user/bookings`}>View Bookings</Link>
             </p>
+            <p>
+            <Link href={`/message/list`}>View Messages</Link>
+            </p>
         </div>
     );
 }

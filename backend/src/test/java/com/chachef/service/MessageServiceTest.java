@@ -163,31 +163,30 @@ class MessageServiceTest {
     @Test
     void getCreateMessageAccount_forUser() {
         UUID userId = UUID.randomUUID();
-        AuthContext authContext = new AuthContext(userId, "user", "name");
         User user = new User();
         user.setUserId(userId);
 
+        when(userRepository.findByUserId(userId)).thenReturn(Optional.of(user));
+
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
         when(messageAccountRepository.findByUser_UserId(userId)).thenReturn(Optional.empty());
 
-        messageService.getCreateMessageAccount(authContext);
+        messageService.getCreateMessageAccountUser(userId);
 
         verify(messageAccountRepository).save(any(MessageAccount.class));
     }
 
     @Test
-    void getCreateMessageAccount_forChef_unauthorized() {
+    void getCreateMessageAccount_forChef_invalidUser() {
         UUID chefId = UUID.randomUUID();
-        UUID wrongUserId = UUID.randomUUID();
 
-        AuthContext authContext = new AuthContext(wrongUserId, "user", "name");
         Chef chef = new Chef();
         User user = new User();
-        user.setUserId(UUID.randomUUID());
         chef.setUser(user);
 
         when(chefRepository.findByChefId(chefId)).thenReturn(Optional.of(chef));
 
-        assertThrows(UnauthorizedUser.class, () -> messageService.getCreateMessageAccount(authContext, chefId));
+        assertThrows(InvalidUserException.class, () -> messageService.getCreateMessageAccount(chefId));
     }
 }

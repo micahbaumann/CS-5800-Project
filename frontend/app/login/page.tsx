@@ -55,7 +55,7 @@ export default function LoginPage() {
 
     return (
         <div style={{ maxWidth: 480, padding: 16 }}>
-            <h2>Signup</h2>
+            <h2>Login</h2>
 
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: 12 }}>

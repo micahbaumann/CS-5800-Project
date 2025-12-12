@@ -54,11 +54,10 @@ public class MessageController {
         return new ResponseEntity<>(messageService.viewMessage(authContext, messageId), HttpStatus.OK);
     }
 
-    @RequireAuth
-    @GetMapping("/user/message-account")
-    public ResponseEntity<Map<String, String>> userMessageAccount(@RequestAttribute(value = "auth") AuthContext authContext) {
+    @GetMapping("/user/{userId}/message-account")
+    public ResponseEntity<Map<String, String>> userMessageAccount(@PathVariable UUID userId) {
         try {
-            return new ResponseEntity<>(Map.of("message_account_id", messageService.getCreateMessageAccount(authContext).getMessageAccountId().toString()), HttpStatus.OK);
+            return new ResponseEntity<>(Map.of("message_account_id", messageService.getCreateMessageAccountUser(userId).getMessageAccountId().toString()), HttpStatus.OK);
         } catch (InvalidUserException e) {
             throw new InvalidUserException(e.getMessage());
         } catch (Exception e) {
@@ -66,11 +65,10 @@ public class MessageController {
         }
     }
 
-    @RequireAuth
     @GetMapping("/chef/{chefId}/message-account")
-    public ResponseEntity<Map<String, String>> chefMessageAccount(@RequestAttribute(value = "auth") AuthContext authContext,  @PathVariable UUID chefId) {
+    public ResponseEntity<Map<String, String>> chefMessageAccount(@PathVariable UUID chefId) {
         try {
-            return new ResponseEntity<>(Map.of("message_account_id", messageService.getCreateMessageAccount(authContext, chefId).getMessageAccountId().toString()), HttpStatus.OK);
+            return new ResponseEntity<>(Map.of("message_account_id", messageService.getCreateMessageAccount(chefId).getMessageAccountId().toString()), HttpStatus.OK);
         } catch (InvalidUserException e) {
             throw new InvalidUserException(e.getMessage());
         } catch (Exception e) {
