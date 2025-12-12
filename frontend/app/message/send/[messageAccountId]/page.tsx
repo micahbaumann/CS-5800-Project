@@ -171,7 +171,6 @@ export default function BookingPage() {
                     <label htmlFor="sendMessage">Message:&nbsp;</label>
                     <textarea
                         id="sendMessage"
-                        type="text"
                         value={sendMessage}
                         onChange={(e) => setSendMessage(e.target.value)}
                         placeholder="Your message"

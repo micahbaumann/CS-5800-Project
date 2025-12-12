@@ -45,7 +45,12 @@ export default function LoginPage() {
             setUsername("");
             setPassword("");
 
-            localStorage.setItem("accessToken", data["access"]);
+            if (data as Auth) {
+                const localStorageToken = (data as Auth).access ?? "";
+                localStorage.setItem("accessToken", localStorageToken);
+            } else {
+                localStorage.setItem("accessToken", "");
+            }
         } catch (err) {
             setMessage(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
         } finally {

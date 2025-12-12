@@ -2,13 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json* /app/
+# Install dependencies
+COPY package.json package-lock.json* ./
 RUN npm ci || npm install
 
-COPY . /app
+# Copy source
+COPY . .
+
+# Build the Next.js app
+ENV NODE_ENV=production
+RUN npm run build
 
 EXPOSE 3000
 
-# Default command is overridden in compose for dev server
+# Run the production server
 CMD ["npm", "run", "start"]
-# CMD ["npm", "run", "dev"]

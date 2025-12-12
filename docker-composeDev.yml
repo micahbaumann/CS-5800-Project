@@ -21,22 +21,22 @@ services:
     networks:
       - app_net
 
-#  phpmyadmin:
-#    image: phpmyadmin:5
-#    container_name: chachef-phpmyadmin
-#    restart: unless-stopped
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    environment:
-#      PMA_HOST: db
-#      PMA_USER: ${DB_USER}
-#      PMA_PASSWORD: ${DB_PASSWORD}
-#      UPLOAD_LIMIT: 64M
-#    ports:
-#      - "8081:80"
-#    networks:
-#      - app_net
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: chachef-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "8081:80"
+    networks:
+      - app_net
 
   backend:
     build: ./backend

@@ -14,8 +14,7 @@ type ApiError = { error?: string; message?: string };
 
 export default function LogoutPage() {
 
-    const handleLogout = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleLogout = async () => {
 
         try {
             console.log(localStorage.getItem("refreshToken"));
@@ -41,8 +40,7 @@ export default function LogoutPage() {
         }
     };
 
-    const handleLogoutAll = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleLogoutAll = async () => {
 
         try {
             const res = await fetch(`${API_BASE}/auth/logout/all`, {

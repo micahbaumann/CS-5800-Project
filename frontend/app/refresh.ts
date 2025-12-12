@@ -41,7 +41,7 @@ export async function fetchWithAuth(
     input: string,
     init: RequestInit = {}
 ): Promise<Response> {
-    let accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("accessToken");
 
     if (!accessToken) {
         // not logged in
